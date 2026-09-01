@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ufaz_hub}
+      POSTGRES_USER: ${POSTGRES_USER:-ufaz}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ufaz}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-ufaz} -d $${POSTGRES_DB:-ufaz_hub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 8
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://ufaz:ufaz@postgres:5432/ufaz_hub}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      UV_LINK_MODE: copy
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build: ./frontend
+    environment:
+      NODE_ENV: development
+      API_INTERNAL_BASE_URL: http://backend:8000/api/v1
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_data:

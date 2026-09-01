@@ -1,0 +1,7 @@
+backend/.venv
+backend/.pytest_cache
+backend/ufaz_hub_backend.egg-info
+frontend/node_modules
+frontend/.next
+**/__pycache__
+**/*.pyc
