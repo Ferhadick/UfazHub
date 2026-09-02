@@ -46,6 +46,7 @@ export function SiteHeader() {
           <span className="min-w-0">
             <span className="block font-accent text-base uppercase leading-none">UFAZ</span>
             <span className="mt-0.5 hidden text-[10px] uppercase tracking-[0.18em] sm:block">Knowledge Platform</span>
+            <span className="mt-0 hidden text-[8px] tracking-[0.12em] text-clay/80 sm:block">By Data Science Club</span>
           </span>
         </Link>
 

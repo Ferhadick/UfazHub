@@ -70,6 +70,7 @@ class ResourceRead(BaseModel):
     upvotes: int
     downvotes: int
     is_hidden: bool = False
+    is_pending_review: bool = False
     hidden_reason: str | None = None
     hidden_at: datetime | None = None
     created_at: datetime

@@ -52,7 +52,7 @@ from app.services.moderation import (
     unmute_user as moderate_unmute,
     warn_user as moderate_warn,
 )
-from app.services.resources import get_resource, update_resource
+from app.services.resources import approve_resource as approve_resource_svc, get_resource, update_resource
 
 BLOCKED_GUEST_EVENTS = (ActionEventType.vote_attempt_blocked, ActionEventType.submit_attempt_blocked)
 
@@ -307,6 +307,7 @@ async def list_content(
     kind: ContentKind,
     q: str | None,
     hidden: bool | None,
+    pending_review: bool | None = None,
     author_id: UUID | None,
     limit: int,
     offset: int,
@@ -322,6 +323,9 @@ async def list_content(
     if hidden is not None:
         stmt = stmt.where(model.is_hidden.is_(hidden))
         count_stmt = count_stmt.where(model.is_hidden.is_(hidden))
+    if pending_review is not None and kind == "resource":
+        stmt = stmt.where(Resource.is_pending_review.is_(pending_review))
+        count_stmt = count_stmt.where(Resource.is_pending_review.is_(pending_review))
     if author_id is not None:
         stmt = stmt.where(model.author_id == author_id)
         count_stmt = count_stmt.where(model.author_id == author_id)
@@ -334,6 +338,7 @@ async def list_content(
             title=row.title,
             slug=getattr(row, "slug", None),
             is_hidden=row.is_hidden,
+            is_pending_review=getattr(row, "is_pending_review", False),
             hidden_reason=row.hidden_reason,
             author_id=row.author_id,
             author_username=row.author.username,
@@ -495,7 +500,13 @@ async def unban_user(session: AsyncSession, user_id: UUID, payload: ReasonBody, 
     return await moderate_unban(session, actor, user, payload.reason)
 
 
+async def approve_resource(session: AsyncSession, resource_id: UUID, actor: User) -> AdminResourceRead:
+    resource = await approve_resource_svc(session, resource_id, actor)
+    return AdminResourceRead.model_validate(resource)
+
+
 __all__ = [
+    "approve_resource",
     "ban_user",
     "create_admin_account",
     "delete_content",

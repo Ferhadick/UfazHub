@@ -81,6 +81,7 @@ class AdminContentItem(BaseModel):
     title: str
     slug: str | None = None
     is_hidden: bool
+    is_pending_review: bool = False
     hidden_reason: str | None
     author_id: UUID
     author_username: str
@@ -92,6 +93,7 @@ AdminContentListItem = AdminContentItem
 
 class AdminResourceRead(ResourceRead):
     is_hidden: bool
+    is_pending_review: bool = False
     hidden_reason: str | None
     hidden_at: datetime | None
 

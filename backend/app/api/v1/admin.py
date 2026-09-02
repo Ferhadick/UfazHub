@@ -104,12 +104,13 @@ async def admin_content(
     kind: ContentKind,
     q: str | None = None,
     hidden: bool | None = None,
+    pending_review: bool | None = None,
     author_id: UUID | None = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> PaginatedResponse[AdminContentItem]:
     items, total = await admin_service.list_content(
-        session, kind=kind, q=q, hidden=hidden, author_id=author_id, limit=limit, offset=offset
+        session, kind=kind, q=q, hidden=hidden, pending_review=pending_review, author_id=author_id, limit=limit, offset=offset
     )
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
@@ -150,6 +151,11 @@ async def admin_content_unhide(
 async def admin_content_delete(kind: ContentKind, content_id: UUID, session: DbSession, actor: AdminUser) -> Response:
     await admin_service.delete_content(session, actor, kind, content_id)
     return Response(status_code=204)
+
+
+@router.post("/content/resource/{content_id}/approve", response_model=AdminResourceRead)
+async def admin_resource_approve(content_id: UUID, session: DbSession, actor: AdminUser) -> Any:
+    return await admin_service.approve_resource(session, content_id, actor)
 
 
 @router.get("/events", response_model=PaginatedResponse[AdminActionEventRead])

@@ -273,7 +273,7 @@ export function adminUnbanUser(token: string, id: string, reason: string): Promi
 
 export function adminListContent(
   token: string,
-  params: { kind: ContentKind; q?: string; hidden?: boolean; author_id?: string; limit?: number; offset?: number }
+  params: { kind: ContentKind; q?: string; hidden?: boolean; pending_review?: boolean; author_id?: string; limit?: number; offset?: number }
 ): Promise<PaginatedResponse<AdminContentItem>> {
   return request<PaginatedResponse<AdminContentItem>>(`/admin/content${queryString(params)}`, { token });
 }
@@ -305,6 +305,10 @@ export function adminUnhideContent(token: string, kind: ContentKind, id: string,
 
 export function adminDeleteContent(token: string, kind: ContentKind, id: string): Promise<void> {
   return request<void>(`/admin/content/${kind}/${id}`, { method: "DELETE", token });
+}
+
+export function adminApproveResource(token: string, id: string): Promise<AdminResourceRead> {
+  return request<AdminResourceRead>(`/admin/content/resource/${id}/approve`, { method: "POST", token });
 }
 
 export function adminListEvents(

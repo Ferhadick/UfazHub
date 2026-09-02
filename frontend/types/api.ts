@@ -42,6 +42,7 @@ export type ResourceRead = {
   student_note: string | null;
   upvotes: number;
   downvotes: number;
+  is_pending_review: boolean;
   created_at: string;
   updated_at: string;
   author: UserPublic;
@@ -166,6 +167,7 @@ export type AdminContentItem = {
   title: string;
   slug: string | null;
   is_hidden: boolean;
+  is_pending_review: boolean;
   hidden_reason: string | null;
   author_id: string;
   author_username: string;
@@ -174,6 +176,7 @@ export type AdminContentItem = {
 
 export type AdminResourceRead = ResourceRead & {
   is_hidden: boolean;
+  is_pending_review: boolean;
   hidden_reason: string | null;
   hidden_at: string | null;
 };

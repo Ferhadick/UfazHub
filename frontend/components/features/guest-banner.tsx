@@ -4,12 +4,24 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { continueAsGuest } from "@/lib/api";
+import { tokenKey } from "@/lib/auth-storage";
 
 export function GuestBanner() {
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
-    setHidden(window.localStorage.getItem("ufaz_entry_seen") === "true");
+    function syncState() {
+      const isLoggedIn = Boolean(window.localStorage.getItem(tokenKey));
+      const alreadySeen = window.localStorage.getItem("ufaz_entry_seen") === "true";
+      setHidden(isLoggedIn || alreadySeen);
+    }
+    syncState();
+    window.addEventListener("storage", syncState);
+    window.addEventListener("ufaz-auth-changed", syncState);
+    return () => {
+      window.removeEventListener("storage", syncState);
+      window.removeEventListener("ufaz-auth-changed", syncState);
+    };
   }, []);
 
   async function continueGuest() {
@@ -23,7 +35,7 @@ export function GuestBanner() {
   return (
     <div className="border-b border-line bg-paper px-4 py-3 text-sm md:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <span className="text-muted">Browse openly, or create an account when you want to vote and publish.</span>
+        <span className="text-muted">Create an account to vote and publish resources.</span>
         <div className="flex flex-wrap gap-2">
           <Link href="/register" className="border border-line px-3 py-2">Sign up</Link>
           <Link href="/login" className="border border-line px-3 py-2">Log in</Link>

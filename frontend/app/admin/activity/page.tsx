@@ -96,7 +96,13 @@ export default function AdminActivityPage() {
                     : `guest ${event.guest_session_id?.slice(0, 8)} · ${event.ip_hash ? `${event.ip_hash.slice(0, 10)}…` : "no hash"}`}
                 </td>
                 <td className="py-3">
-                  {event.target_type ?? "—"} {event.target_id ? event.target_id.slice(0, 8) : ""}
+                  {event.target_type === "user" && event.target_id ? (
+                    <a href={`/admin/users/${event.target_id}`} className="underline underline-offset-2 hover:text-clay">
+                      user {event.target_id}
+                    </a>
+                  ) : (
+                    <span>{event.target_type ?? "—"} {event.target_id ?? ""}</span>
+                  )}
                 </td>
               </tr>
             ))}

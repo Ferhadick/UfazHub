@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createResource } from "@/lib/api";
@@ -46,6 +47,7 @@ type ResourceFormProps = {
 };
 
 export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: ResourceFormProps) {
+  const [submitted, setSubmitted] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -90,7 +92,29 @@ export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: 
       return;
     }
     await createResource(token, payload);
-    form.reset({ type: "course", difficulty: "beginner", use_case: "First time learning", time_commitment: "30 min", tags: "" });
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <div className="border border-line bg-paper p-8 text-center">
+        <div className="text-xs uppercase tracking-[0.16em] text-accent">Submitted</div>
+        <h2 className="mt-3 font-accent text-2xl">Your entry is under review.</h2>
+        <p className="mt-3 font-sans text-sm text-muted">
+          An admin will approve it before it appears publicly. Thank you for contributing!
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setSubmitted(false);
+            form.reset({ type: "course", difficulty: "beginner", use_case: "First time learning", time_commitment: "30 min", tags: "" });
+          }}
+          className="mt-6 border border-line px-4 py-2 font-sans text-sm transition-colors hover:border-accent hover:bg-clay hover:text-accent"
+        >
+          Submit another entry
+        </button>
+      </div>
+    );
   }
 
   return (

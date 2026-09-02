@@ -14,6 +14,7 @@ from app.services.tags import resolve_tags
 
 async def create_resource(session: AsyncSession, payload: ResourceCreate, user: User) -> Resource:
     await assert_user_can_write(session, user)
+    is_admin = user.role.value == "admin"
     resource = Resource(
         author_id=user.id,
         title=payload.title,
@@ -29,13 +30,26 @@ async def create_resource(session: AsyncSession, payload: ResourceCreate, user: 
         warning=payload.warning,
         student_note=payload.student_note,
         tags=await resolve_tags(session, payload.tags),
+        is_hidden=not is_admin,
+        is_pending_review=not is_admin,
     )
     session.add(resource)
     user.reputation_score += 5
     await session.flush()
     await log_action(session, ActionEventType.resource_created, user=user, target_type="resource", target_id=resource.id)
     await session.commit()
-    return await get_resource(session, resource.id)
+    return await get_resource(session, resource.id, include_hidden=True)
+
+
+async def approve_resource(session: AsyncSession, resource_id: UUID, actor: User) -> Resource:
+    resource = await get_resource(session, resource_id, include_hidden=True)
+    if not resource.is_pending_review:
+        raise ApiError(409, "NOT_PENDING", "This resource is not pending review.")
+    resource.is_hidden = False
+    resource.is_pending_review = False
+    await log_action(session, ActionEventType.admin_unhide, user=actor, target_type="resource", target_id=resource_id, metadata={"reason": "Approved from review queue"})
+    await session.commit()
+    return await get_resource(session, resource_id)
 
 
 async def list_resources(
