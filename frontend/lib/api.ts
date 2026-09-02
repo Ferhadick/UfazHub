@@ -4,13 +4,18 @@ import type {
   AdminCollectionRead,
   AdminContentItem,
   AdminOverview,
+  AdminQAQueueResponse,
   AdminResourceRead,
   AdminUserDetail,
+  AnswerRead,
   ArticleRead,
   CollectionRead,
   ContentKind,
   FeedItem,
   PaginatedResponse,
+  QuestionDetail,
+  QuestionRead,
+  QuestionStatus,
   ResourceRead,
   TagRead,
   TokenResponse,
@@ -400,4 +405,114 @@ export function adminListEvents(
   } = {}
 ): Promise<PaginatedResponse<AdminActionEventRead>> {
   return request<PaginatedResponse<AdminActionEventRead>>(`/admin/events${queryString(params)}`, { token });
+}
+
+// ─── Q&A ───────────────────────────────────────────────────────────────────
+
+export function listQuestions(params: {
+  limit?: number;
+  offset?: number;
+  topic?: string;
+  status?: QuestionStatus | "";
+  q?: string;
+  sort?: "recent" | "upvotes" | "unanswered";
+} = {}): Promise<PaginatedResponse<QuestionRead>> {
+  return request<PaginatedResponse<QuestionRead>>(`/qa/questions${queryString(params)}`);
+}
+
+export function getQuestion(id: string): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/questions/${id}`);
+}
+
+export function createQuestion(
+  token: string,
+  payload: { title: string; body?: string; topic_tag: string; linked_resource_id?: string }
+): Promise<QuestionDetail> {
+  return request<QuestionDetail>("/qa/questions", { method: "POST", token, body: JSON.stringify(payload) });
+}
+
+export function updateQuestion(
+  token: string,
+  id: string,
+  payload: { title?: string; body?: string; topic_tag?: string; status?: QuestionStatus }
+): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/questions/${id}`, { method: "PATCH", token, body: JSON.stringify(payload) });
+}
+
+export function deleteQuestion(token: string, id: string): Promise<void> {
+  return request<void>(`/qa/questions/${id}`, { method: "DELETE", token });
+}
+
+export function voteQuestion(token: string, id: string, value: number): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/questions/${id}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
+}
+
+export function createAnswer(
+  token: string,
+  questionId: string,
+  payload: { body: string; linked_resources?: Array<{ title?: string; url?: string }> }
+): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/questions/${questionId}/answers`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateAnswer(
+  token: string,
+  answerId: string,
+  payload: { body?: string; linked_resources?: Array<{ title?: string; url?: string }> }
+): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/answers/${answerId}`, { method: "PATCH", token, body: JSON.stringify(payload) });
+}
+
+export function deleteAnswer(token: string, answerId: string): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/answers/${answerId}`, { method: "DELETE", token });
+}
+
+export function pinAnswer(token: string, questionId: string, answerId: string): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/questions/${questionId}/pin-answer/${answerId}`, { method: "POST", token });
+}
+
+export function voteAnswer(token: string, answerId: string, value: number): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/qa/answers/${answerId}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
+}
+
+// ─── Admin Q&A ──────────────────────────────────────────────────────────────
+
+export function adminGetQAQueue(token: string, q?: string): Promise<AdminQAQueueResponse> {
+  return request<AdminQAQueueResponse>(`/admin/qa/queue${queryString({ q })}`, { token });
+}
+
+export function adminMergeQuestions(
+  token: string,
+  source_question_id: string,
+  target_question_id: string
+): Promise<QuestionDetail> {
+  return request<QuestionDetail>("/admin/qa/merge", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ source_question_id, target_question_id })
+  });
+}
+
+export function adminPinQuestion(token: string, questionId: string): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/admin/qa/questions/${questionId}/pin`, { method: "POST", token });
+}
+
+export function adminCloseQuestion(token: string, questionId: string): Promise<QuestionDetail> {
+  return request<QuestionDetail>(`/admin/qa/questions/${questionId}/close`, { method: "POST", token });
+}
+
+export function adminVerifyUser(
+  token: string,
+  userId: string,
+  verified: boolean
+): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${userId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ is_verified: verified, role: verified ? "verified_ufazian" : "user", reason: verified ? "Verified as UFAZ alumni/senior member" : "Verification revoked" })
+  });
 }

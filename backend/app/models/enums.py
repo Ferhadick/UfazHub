@@ -22,6 +22,12 @@ class ArticleStatus(str, enum.Enum):
     published = "published"
 
 
+class QuestionStatus(str, enum.Enum):
+    open = "open"
+    answered = "answered"
+    closed = "closed"
+
+
 class ActorType(str, enum.Enum):
     guest = "guest"
     user = "user"
@@ -29,6 +35,7 @@ class ActorType(str, enum.Enum):
 
 class UserRole(str, enum.Enum):
     user = "user"
+    verified_ufazian = "verified_ufazian"
     admin = "admin"
 
 
@@ -45,6 +52,7 @@ class ModerationEventType(str, enum.Enum):
     ban = "ban"
     unban = "unban"
     role_change = "role_change"
+    verification_change = "verification_change"
 
 
 class ActionEventType(str, enum.Enum):
@@ -52,6 +60,7 @@ class ActionEventType(str, enum.Enum):
     view_article = "view_article"
     view_collection = "view_collection"
     view_profile = "view_profile"
+    view_question = "view_question"
     search_query = "search_query"
     vote_attempt_blocked = "vote_attempt_blocked"
     submit_attempt_blocked = "submit_attempt_blocked"
@@ -59,6 +68,12 @@ class ActionEventType(str, enum.Enum):
     resource_created = "resource_created"
     article_published = "article_published"
     collection_created = "collection_created"
+    question_created = "question_created"
+    answer_created = "answer_created"
+    answer_pinned = "answer_pinned"
+    question_merged = "question_merged"
+    user_verified = "user_verified"
+    user_unverified = "user_unverified"
     signup_started = "signup_started"
     signup_completed = "signup_completed"
     login = "login"

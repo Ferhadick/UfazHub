@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Text, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -18,6 +18,11 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(120))
     bio: Mapped[str | None] = mapped_column(Text)
     faculty: Mapped[str | None] = mapped_column(String(120))
+    graduation_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_role: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    company_or_institution: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    degree_level: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), index=True)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     github_url: Mapped[str | None] = mapped_column(String(255))
     linkedin_url: Mapped[str | None] = mapped_column(String(255))
@@ -35,6 +40,8 @@ class User(Base):
     resources = relationship("Resource", back_populates="author", foreign_keys="Resource.author_id")
     articles = relationship("Article", back_populates="author", foreign_keys="Article.author_id")
     collections = relationship("Collection", back_populates="author", foreign_keys="Collection.author_id")
+    questions = relationship("Question", back_populates="author", foreign_keys="Question.author_id")
+    answers = relationship("Answer", back_populates="author", foreign_keys="Answer.author_id")
     moderation_events = relationship("UserModerationEvent", back_populates="user", foreign_keys="UserModerationEvent.user_id")
     avatar = relationship("UserAvatar", back_populates="user", uselist=False, cascade="all, delete-orphan")
 

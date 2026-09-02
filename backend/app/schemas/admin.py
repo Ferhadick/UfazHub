@@ -29,6 +29,11 @@ class AdminUserUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=120)
     bio: str | None = Field(default=None, max_length=1000)
     faculty: str | None = Field(default=None, max_length=120)
+    graduation_year: int | None = Field(default=None, ge=2015, le=2035)
+    current_role: str | None = Field(default=None, max_length=120)
+    company_or_institution: str | None = Field(default=None, max_length=120)
+    degree_level: str | None = Field(default=None, max_length=60)
+    is_verified: bool | None = None
     username: str | None = Field(default=None, min_length=3, max_length=40, pattern=r"^[a-zA-Z0-9_]+$")
     email: EmailStr | None = None
     role: UserRole | None = None

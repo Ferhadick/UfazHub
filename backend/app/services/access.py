@@ -10,6 +10,10 @@ def is_admin(user: User) -> bool:
     return user.role == UserRole.admin
 
 
+def is_verified_or_admin(user: User) -> bool:
+    return user.role in (UserRole.verified_ufazian, UserRole.admin) or user.is_verified or user.role == UserRole.admin
+
+
 def assert_author_or_admin(author_id, user: User, action: str = "edit this item") -> None:
     if is_admin(user) or author_id == user.id:
         return
@@ -35,6 +39,12 @@ async def assert_user_can_write(session: AsyncSession, user: User) -> None:
         raise ApiError(403, "ACCOUNT_BANNED", "This account is banned.")
     if user.status == UserStatus.muted:
         raise ApiError(403, "MUTED", "This account is muted and cannot publish, edit, or vote.")
+
+
+async def assert_user_can_answer(session: AsyncSession, user: User) -> None:
+    await assert_user_can_write(session, user)
+    if not is_verified_or_admin(user):
+        raise ApiError(403, "VERIFIED_REQUIRED", "Only Verified UFAZians (alumni and approved members) can answer questions.")
 
 
 def assert_not_banned(user: User) -> None:

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from app.api.deps import DbSession, get_optional_guest, get_optional_user
 from app.models import ActionEventType, GuestSession, User
 from app.schemas.feed import FeedItem
+from app.services import qa as qa_service
 from app.services.articles import search_articles
 from app.services.collections import search_collections
 from app.services.events import log_action
@@ -25,9 +26,26 @@ async def search(
     resources, _ = await search_resources(session, q, limit, offset)
     articles = await search_articles(session, q, limit)
     collections = await search_collections(session, q, limit)
+    questions, _ = await qa_service.list_questions(session, limit=limit, q=q)
     await log_action(session, ActionEventType.search_query, user=user, guest=guest, metadata={"query": q})
     await session.commit()
     items: list[FeedItem] = []
+    for q_item in questions:
+        items.append(
+            FeedItem(
+                id=str(q_item.id),
+                kind="question",
+                title=q_item.title,
+                description=q_item.body or f"Question on {q_item.topic_tag}",
+                href=f"/ask/{q_item.id}",
+                author_name=q_item.author.name,
+                author_username=q_item.author.username,
+                tags=[q_item.topic_tag],
+                score=q_item.upvotes - q_item.downvotes,
+                meta=f"{q_item.answers_count} answers",
+                created_at=q_item.created_at,
+            )
+        )
     for resource in resources:
         items.append(
             FeedItem(

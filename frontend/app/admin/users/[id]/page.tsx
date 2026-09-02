@@ -19,7 +19,7 @@ import {
 import { getStoredToken, getStoredUser } from "@/lib/auth-storage";
 import type { AdminContentItem, AdminUserDetail, UserPublic } from "@/types/api";
 
-type ActionKind = "warn" | "mute" | "unmute" | "ban" | "unban" | "make_admin" | "remove_admin";
+type ActionKind = "warn" | "mute" | "unmute" | "ban" | "unban" | "make_admin" | "remove_admin" | "verify_alumni" | "unverify_alumni";
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
@@ -62,6 +62,12 @@ export default function AdminUserDetailPage() {
       if (action === "unban") await adminUnbanUser(token, id, reason);
       if (action === "make_admin") await adminUpdateUser(token, id, { role: "admin", reason });
       if (action === "remove_admin") await adminUpdateUser(token, id, { role: "user", reason });
+      if (action === "verify_alumni") {
+        await adminUpdateUser(token, id, { role: "verified_ufazian" as any, reason, is_verified: true } as any);
+      }
+      if (action === "unverify_alumni") {
+        await adminUpdateUser(token, id, { role: "user", reason, is_verified: false } as any);
+      }
       await reload(token);
       setAction(null);
     } catch (err) {
@@ -84,8 +90,12 @@ export default function AdminUserDetailPage() {
         username: String(form.get("username") ?? ""),
         email: String(form.get("email") ?? ""),
         faculty: String(form.get("faculty") ?? ""),
-        bio: String(form.get("bio") ?? "")
-      });
+        bio: String(form.get("bio") ?? ""),
+        current_role: String(form.get("current_role") ?? "") || undefined,
+        company_or_institution: String(form.get("company_or_institution") ?? "") || undefined,
+        degree_level: String(form.get("degree_level") ?? "") || undefined,
+        graduation_year: form.get("graduation_year") ? Number(form.get("graduation_year")) : undefined,
+      } as any);
       await reload(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -111,14 +121,21 @@ export default function AdminUserDetailPage() {
     ban: { title: "Ban this account", confirm: "Ban" },
     unban: { title: "Unban this account", confirm: "Unban" },
     make_admin: { title: "Promote to admin", confirm: "Make admin" },
-    remove_admin: { title: "Remove admin", confirm: "Demote" }
+    remove_admin: { title: "Remove admin", confirm: "Demote" },
+    verify_alumni: { title: "Verify as UFAZ Alumni/Senior (Can answer Q&A)", confirm: "Grant Verified Role" },
+    unverify_alumni: { title: "Revoke Alumni Verification", confirm: "Revoke Verification" }
   };
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:py-12 md:px-8">
       <div className="border-t border-line pt-5">
-        <div className="text-xs uppercase tracking-[0.18em] text-muted">
-          {user.role} / {user.status} / {user.warning_count} warnings
+        <div className="text-xs uppercase tracking-[0.18em] text-muted flex items-center gap-2">
+          <span>{user.role} / {user.status} / {user.warning_count} warnings</span>
+          {user.is_verified && (
+            <span className="border border-clay/50 bg-clay/15 text-clay px-1.5 py-0.5 font-bold uppercase text-[10px]">
+              Verified UFAZian
+            </span>
+          )}
         </div>
         <h2 className="mt-2 font-accent text-3xl break-words sm:text-5xl">{user.name}</h2>
         <p className="mt-2 font-sans text-sm text-muted break-all">@{user.username} · {user.email}</p>
@@ -142,6 +159,15 @@ export default function AdminUserDetailPage() {
           </Button>
         ) : (
           <Button type="button" variant="outline" onClick={() => setAction("make_admin")}>Make admin</Button>
+        )}
+        {user.is_verified || user.role === "verified_ufazian" ? (
+          <Button type="button" variant="outline" onClick={() => setAction("unverify_alumni")}>
+            Revoke Verification
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" onClick={() => setAction("verify_alumni")}>
+            Verify as UFAZian
+          </Button>
         )}
       </div>
 
@@ -169,6 +195,24 @@ export default function AdminUserDetailPage() {
           Bio
           <textarea name="bio" defaultValue={user.bio ?? ""} placeholder="Bio" className="mt-1 min-h-24 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
         </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className="block font-sans text-sm font-bold">
+            Current Role / Job Title
+            <input name="current_role" defaultValue={user.current_role ?? ""} placeholder="e.g. Data Scientist" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+          </label>
+          <label className="block font-sans text-sm font-bold">
+            Company or Institution
+            <input name="company_or_institution" defaultValue={user.company_or_institution ?? ""} placeholder="e.g. Google, TotalEnergies, EPFL" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+          </label>
+          <label className="block font-sans text-sm font-bold">
+            Graduation Year
+            <input name="graduation_year" type="number" defaultValue={user.graduation_year ?? ""} placeholder="e.g. 2024" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+          </label>
+          <label className="block font-sans text-sm font-bold">
+            Degree Level
+            <input name="degree_level" defaultValue={user.degree_level ?? ""} placeholder="e.g. Bachelor, Master, PhD" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+          </label>
+        </div>
         <Button type="submit" disabled={saveBusy} className="w-full sm:w-auto">{saveBusy ? "Saving..." : "Save profile"}</Button>
       </form>
 

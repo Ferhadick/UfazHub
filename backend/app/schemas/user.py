@@ -15,6 +15,11 @@ class UserPublic(BaseModel):
     name: str
     bio: str | None
     faculty: str | None
+    graduation_year: int | None = None
+    current_role: str | None = None
+    company_or_institution: str | None = None
+    degree_level: str | None = None
+    is_verified: bool = False
     avatar_url: str | None
     github_url: str | None = None
     linkedin_url: str | None = None
@@ -35,12 +40,20 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     name: str = Field(min_length=2, max_length=120)
     faculty: str | None = Field(default=None, max_length=120)
+    graduation_year: int | None = Field(default=None, ge=2015, le=2035)
+    current_role: str | None = Field(default=None, max_length=120)
+    company_or_institution: str | None = Field(default=None, max_length=120)
+    degree_level: str | None = Field(default=None, max_length=60)
 
 
 class UserUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=120)
     bio: str | None = Field(default=None, max_length=1000)
     faculty: str | None = Field(default=None, max_length=120)
+    graduation_year: int | None = Field(default=None, ge=2015, le=2035)
+    current_role: str | None = Field(default=None, max_length=120)
+    company_or_institution: str | None = Field(default=None, max_length=120)
+    degree_level: str | None = Field(default=None, max_length=60)
     avatar_url: str | None = Field(default=None, max_length=500)
     github_url: str | None = Field(default=None, max_length=255)
     linkedin_url: str | None = Field(default=None, max_length=255)

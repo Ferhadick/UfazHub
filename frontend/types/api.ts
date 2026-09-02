@@ -1,8 +1,9 @@
 export type ResourceType = "course" | "article" | "video" | "docs" | "github_repo" | "website" | "book";
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "verified_ufazian" | "admin";
 export type UserStatus = "active" | "muted" | "banned";
+export type QuestionStatus = "open" | "answered" | "closed";
 
 export type UserPublic = {
   id: string;
@@ -11,6 +12,11 @@ export type UserPublic = {
   name: string;
   bio: string | null;
   faculty: string | null;
+  graduation_year?: number | null;
+  current_role?: string | null;
+  company_or_institution?: string | null;
+  degree_level?: string | null;
+  is_verified?: boolean;
   avatar_url: string | null;
   github_url?: string | null;
   linkedin_url?: string | null;
@@ -23,6 +29,59 @@ export type UserPublic = {
   muted_until: string | null;
   warning_count: number;
   created_at: string;
+};
+
+export type AnswerRead = {
+  id: string;
+  question_id: string;
+  author_id: string;
+  author: UserPublic;
+  body: string;
+  linked_resources: Array<{ title?: string; url?: string; id?: string }>;
+  upvotes: number;
+  downvotes: number;
+  is_pinned: boolean;
+  is_helpful: boolean;
+  is_hidden: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuestionRead = {
+  id: string;
+  author_id: string;
+  author: UserPublic;
+  title: string;
+  body: string | null;
+  topic_tag: string;
+  linked_resource_id: string | null;
+  linked_resource: ResourceRead | null;
+  status: QuestionStatus;
+  upvotes: number;
+  downvotes: number;
+  is_hidden: boolean;
+  is_pinned_admin: boolean;
+  answers_count: number;
+  has_verified_answer: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuestionDetail = QuestionRead & {
+  answers: AnswerRead[];
+};
+
+export type AdminQACluster = {
+  keyword: string;
+  count: number;
+  questions: QuestionRead[];
+};
+
+export type AdminQAQueueResponse = {
+  total_unanswered: number;
+  total_questions: number;
+  clusters: AdminQACluster[];
+  recent_questions: QuestionRead[];
 };
 
 export type TagRead = {

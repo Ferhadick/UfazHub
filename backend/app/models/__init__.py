@@ -5,12 +5,14 @@ from app.models.enums import (
     ArticleStatus,
     Difficulty,
     ModerationEventType,
+    QuestionStatus,
     ResourceType,
     UserRole,
     UserStatus,
 )
 from app.models.events import ActionEvent, GuestSession, ReputationEvent, Vote
 from app.models.moderation import UserModerationEvent
+from app.models.qa import Answer, Question
 from app.models.tag import Tag
 from app.models.user import User
 
@@ -19,12 +21,15 @@ __all__ = [
     "ActionEventType",
     "Article",
     "ActorType",
+    "Answer",
     "ArticleStatus",
     "Collection",
     "CollectionItem",
     "Difficulty",
     "GuestSession",
     "ModerationEventType",
+    "Question",
+    "QuestionStatus",
     "ReputationEvent",
     "Resource",
     "ResourceType",

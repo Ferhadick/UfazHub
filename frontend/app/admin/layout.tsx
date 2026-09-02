@@ -10,6 +10,7 @@ const links = [
   { href: "/admin" as Route, label: "Overview" },
   { href: "/admin/users" as Route, label: "People" },
   { href: "/admin/content" as Route, label: "Holdings" },
+  { href: "/admin/qa" as Route, label: "Q&A Queue" },
   { href: "/admin/activity" as Route, label: "Ledger" }
 ];
 

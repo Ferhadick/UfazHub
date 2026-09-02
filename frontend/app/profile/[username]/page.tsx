@@ -60,6 +60,21 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             <ProfileEditLink username={profile.username} />
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            {profile.is_verified && (
+              <span className="border border-clay bg-clay/15 px-3 py-1.5 font-sans font-bold text-clay uppercase tracking-wider">
+                ✓ Verified UFAZian
+              </span>
+            )}
+            {profile.current_role && (
+              <span className="border border-line bg-paper/70 px-3 py-1.5 font-sans font-bold">
+                {profile.current_role}{profile.company_or_institution ? ` at ${profile.company_or_institution}` : ""}
+              </span>
+            )}
+            {profile.graduation_year && (
+              <span className="border border-line bg-paper/70 px-3 py-1.5 font-sans">
+                Class of {profile.graduation_year}
+              </span>
+            )}
             <span className="border border-line bg-paper/70 px-3 py-1.5 font-sans">{profile.faculty ?? "UFAZ student"}</span>
             <span className="border border-line bg-paper/70 px-3 py-1.5 font-sans">Joined {new Date(profile.created_at).getFullYear()}</span>
           </div>

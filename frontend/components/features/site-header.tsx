@@ -5,13 +5,15 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { AuthNav } from "@/components/features/auth-nav";
+import type { Route } from "next";
 import { SubmitLink } from "@/components/features/submit-link";
 
-const links = [
-  { href: "/resources", label: "Explore" },
-  { href: "/collections", label: "Collections" },
-  { href: "/people", label: "People" }
-] as const;
+const links: { href: Route; label: string }[] = [
+  { href: "/resources" as Route, label: "Explore" },
+  { href: "/collections" as Route, label: "Collections" },
+  { href: "/ask" as Route, label: "Q&A" },
+  { href: "/people" as Route, label: "People" }
+];
 
 export function SiteHeader() {
   const pathname = usePathname();
