@@ -16,6 +16,11 @@ class UserPublic(BaseModel):
     bio: str | None
     faculty: str | None
     avatar_url: str | None
+    github_url: str | None = None
+    linkedin_url: str | None = None
+    telegram_url: str | None = None
+    youtube_url: str | None = None
+    website_url: str | None = None
     reputation_score: int
     role: UserRole
     status: UserStatus
@@ -37,6 +42,11 @@ class UserUpdate(BaseModel):
     bio: str | None = Field(default=None, max_length=1000)
     faculty: str | None = Field(default=None, max_length=120)
     avatar_url: str | None = Field(default=None, max_length=500)
+    github_url: str | None = Field(default=None, max_length=255)
+    linkedin_url: str | None = Field(default=None, max_length=255)
+    telegram_url: str | None = Field(default=None, max_length=255)
+    youtube_url: str | None = Field(default=None, max_length=255)
+    website_url: str | None = Field(default=None, max_length=255)
 
 
 class LoginRequest(BaseModel):

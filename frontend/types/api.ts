@@ -12,6 +12,11 @@ export type UserPublic = {
   bio: string | null;
   faculty: string | null;
   avatar_url: string | null;
+  github_url?: string | null;
+  linkedin_url?: string | null;
+  telegram_url?: string | null;
+  youtube_url?: string | null;
+  website_url?: string | null;
   reputation_score: number;
   role: UserRole;
   status: UserStatus;
@@ -60,6 +65,7 @@ export type ArticleRead = {
   status: "draft" | "published";
   upvotes: number;
   downvotes: number;
+  is_pending_review?: boolean;
   created_at: string;
   updated_at: string;
   published_at: string | null;
@@ -73,6 +79,7 @@ export type CollectionRead = {
   description: string;
   upvotes: number;
   downvotes: number;
+  is_pending_review?: boolean;
   created_at: string;
   updated_at: string;
   author: UserPublic;
@@ -183,12 +190,14 @@ export type AdminResourceRead = ResourceRead & {
 
 export type AdminArticleRead = ArticleRead & {
   is_hidden: boolean;
+  is_pending_review: boolean;
   hidden_reason: string | null;
   hidden_at: string | null;
 };
 
 export type AdminCollectionRead = CollectionRead & {
   is_hidden: boolean;
+  is_pending_review: boolean;
   hidden_reason: string | null;
   hidden_at: string | null;
 };

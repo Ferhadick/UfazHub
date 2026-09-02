@@ -20,8 +20,9 @@ async def index(
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
     type: str | None = None,
+    q: str | None = None,
 ) -> PaginatedResponse[ResourceRead]:
-    items, total = await list_resources(session, limit, offset, type)
+    items, total = await list_resources(session, limit, offset, type, q=q)
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 

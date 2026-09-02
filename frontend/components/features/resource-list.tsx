@@ -1,5 +1,6 @@
 import type { ResourceRead } from "@/types/api";
 import Link from "next/link";
+import type { Route } from "next";
 
 const labels: Record<string, string> = {
   course: "Course",
@@ -41,9 +42,9 @@ export function ResourceList({ resources }: { resources: ResourceRead[] }) {
               {labels[resource.type]} / {metadata(resource)}
             </div>
             <h3 className="mt-2 font-accent text-2xl leading-tight break-words md:text-3xl">
-              <a href={resource.url} target="_blank" rel="noreferrer">
+              <Link href={`/resources/${resource.id}` as Route} className="transition-colors hover:text-accent">
                 {resource.title}
-              </a>
+              </Link>
             </h3>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{resource.description}</p>
             {(resource.use_case || resource.time_commitment || resource.best_part || resource.warning || resource.student_note) && (
@@ -81,12 +82,29 @@ export function ResourceList({ resources }: { resources: ResourceRead[] }) {
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
-              <Link href={`/profile/${resource.author.username}`} className="border-b border-transparent font-sans font-bold text-ink transition-colors hover:border-accent hover:text-accent">
+              <Link href={`/profile/${resource.author.username}` as Route} className="inline-flex items-center gap-2 font-sans font-bold text-ink transition-colors hover:text-accent">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden border border-line bg-clay font-accent text-[9px] text-accent">
+                  {resource.author.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={resource.author.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    resource.author.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()
+                  )}
+                </span>
                 {resource.author.name}
               </Link>
+              <a
+                href={resource.url}
+                target="_blank"
+                rel="noreferrer"
+                className="border border-line bg-paper px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent"
+                title="Direct link"
+              >
+                Link ↗
+              </a>
               {resource.tags.map((tag) => (
                 <span key={tag.id} className="border border-line px-2 py-1">
-                  {tag.name}
+                  #{tag.name}
                 </span>
               ))}
             </div>

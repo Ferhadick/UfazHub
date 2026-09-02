@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Route } from "next";
 import { ExternalLink, Mail, UserRound } from "lucide-react";
 import { ProfileEditLink } from "@/components/features/profile-edit-link";
 import { getProfileArchive, getPublicProfile } from "@/lib/api";
@@ -81,7 +82,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             </div>
 
             <aside className="border-t-2 border-line pt-5 lg:border-t-0 lg:border-l-4 lg:pt-0 lg:pl-5">
-              <div className="text-xs uppercase tracking-[0.16em] text-accent">Contact</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-accent">Contact & Socials</div>
               <div className="mt-4 space-y-3 font-sans text-sm">
                 <a href={`mailto:${profile.email}`} className="flex items-center gap-2 border-b border-line pb-2 text-accent break-all">
                   <Mail className="h-4 w-4 shrink-0" /> {profile.email}
@@ -89,6 +90,31 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                 <div className="flex items-center gap-2 border-b border-line pb-2 text-muted">
                   <UserRound className="h-4 w-4 shrink-0" /> @{profile.username}
                 </div>
+                {profile.github_url && (
+                  <a href={profile.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 border-b border-line pb-2 text-ink hover:text-accent break-all">
+                    <ExternalLink className="h-4 w-4 shrink-0 text-muted" /> GitHub
+                  </a>
+                )}
+                {profile.linkedin_url && (
+                  <a href={profile.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 border-b border-line pb-2 text-ink hover:text-accent break-all">
+                    <ExternalLink className="h-4 w-4 shrink-0 text-muted" /> LinkedIn
+                  </a>
+                )}
+                {profile.telegram_url && (
+                  <a href={profile.telegram_url.startsWith("http") ? profile.telegram_url : `https://t.me/${profile.telegram_url.replace("@", "")}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 border-b border-line pb-2 text-ink hover:text-accent break-all">
+                    <ExternalLink className="h-4 w-4 shrink-0 text-muted" /> Telegram
+                  </a>
+                )}
+                {profile.youtube_url && (
+                  <a href={profile.youtube_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 border-b border-line pb-2 text-ink hover:text-accent break-all">
+                    <ExternalLink className="h-4 w-4 shrink-0 text-muted" /> YouTube
+                  </a>
+                )}
+                {profile.website_url && (
+                  <a href={profile.website_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 border-b border-line pb-2 text-ink hover:text-accent break-all">
+                    <ExternalLink className="h-4 w-4 shrink-0 text-muted" /> Website
+                  </a>
+                )}
               </div>
             </aside>
           </div>
@@ -116,7 +142,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               </Link>
             ))}
             {archive.resources.map((resource, index) => (
-              <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" className="grid gap-3 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem] md:gap-4">
+              <Link key={resource.id} href={`/resources/${resource.id}` as Route} className="grid gap-3 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem] md:gap-4">
                 <div className="flex items-baseline justify-between gap-4 md:block">
                   <span className="font-accent text-xl text-accent">{String(archive.articles.length + index + 1).padStart(2, "0")}</span>
                   <span className="font-accent text-xl md:hidden">{resource.upvotes - resource.downvotes}</span>
@@ -124,11 +150,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                 <div className="min-w-0">
                   <span className="block text-xs uppercase tracking-[0.16em] text-muted">{resource.type.replaceAll("_", " ")} / {resource.difficulty}</span>
                   <span className="mt-1 flex items-center gap-2 font-accent text-2xl leading-tight break-words">
-                    {resource.title} <ExternalLink className="h-4 w-4 shrink-0" />
+                    {resource.title}
                   </span>
                 </div>
                 <span className="hidden text-right font-accent text-xl md:block">{resource.upvotes - resource.downvotes}</span>
-              </a>
+              </Link>
             ))}
             {totalPublished === 0 && (
               <div className="py-10 font-sans text-muted">Nothing published yet. Check back after this student starts sharing.</div>

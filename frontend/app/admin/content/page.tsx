@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { useEffect, useState } from "react";
 import { ReasonModal } from "@/components/features/reason-modal";
 import { Button } from "@/components/ui/button";
-import { adminApproveResource, adminDeleteContent, adminHideContent, adminListContent, adminUnhideContent } from "@/lib/api";
+import { adminApproveContent, adminDeleteContent, adminHideContent, adminListContent, adminUnhideContent } from "@/lib/api";
 import { getStoredToken } from "@/lib/auth-storage";
 import type { AdminContentItem, ContentKind } from "@/types/api";
 
@@ -46,7 +46,7 @@ export default function AdminContentPage() {
     setBusy(true);
     setError(null);
     try {
-      await adminApproveResource(token, item.id);
+      await adminApproveContent(token, item.kind, item.id);
       await load(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Approval failed");
@@ -110,7 +110,7 @@ export default function AdminContentPage() {
           <option value="all">All items</option>
           <option value="visible">Visible only</option>
           <option value="hidden">Hidden only</option>
-          {kind === "resource" ? <option value="pending">Pending review only</option> : null}
+          <option value="pending">Pending review</option>
         </select>
       </div>
 
@@ -123,8 +123,18 @@ export default function AdminContentPage() {
           items.map((item) => (
             <article key={item.id} className="grid gap-3 py-5 md:grid-cols-[1fr_auto]">
               <div>
-                <div className="text-xs uppercase tracking-[0.16em] text-muted">
-                  {item.kind} {item.is_pending_review ? "· pending review" : item.is_hidden ? "· hidden" : "· active"} · @{item.author_username}
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted">
+                  <span>{item.kind}</span>
+                  {item.is_pending_review && (
+                    <span className="border border-line bg-clay/70 px-1.5 py-0.5 text-[9px] font-bold text-accent">Pending Review</span>
+                  )}
+                  {!item.is_pending_review && item.is_hidden && (
+                    <span className="border border-line bg-paper px-1.5 py-0.5 text-[9px] text-muted">Hidden</span>
+                  )}
+                  {!item.is_pending_review && !item.is_hidden && (
+                    <span className="border border-line bg-paper px-1.5 py-0.5 text-[9px] text-muted">Active</span>
+                  )}
+                  <span>· @{item.author_username}</span>
                 </div>
                 <h3 className="mt-1 font-accent text-2xl">
                   <Link href={`/admin/content/${item.kind}/${item.id}` as Route} className="hover:text-accent">
@@ -134,9 +144,14 @@ export default function AdminContentPage() {
                 {item.hidden_reason ? <p className="mt-1 font-sans text-sm text-muted">{item.hidden_reason}</p> : null}
               </div>
               <div className="flex flex-wrap gap-2 self-start">
-                {item.kind === "resource" && item.is_pending_review ? (
-                  <Button type="button" disabled={busy} onClick={() => handleApprove(item)} className="bg-clay text-accent hover:bg-clay/90">
-                    Approve
+                {item.is_pending_review ? (
+                  <Button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleApprove(item)}
+                    className="border border-accent bg-clay px-4 py-2 text-xs font-bold text-accent shadow-[2px_2px_0_var(--color-accent)] hover:bg-clay/80"
+                  >
+                    ✓ Approve
                   </Button>
                 ) : null}
                 {item.is_hidden ? (

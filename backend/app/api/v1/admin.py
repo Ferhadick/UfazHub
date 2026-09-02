@@ -158,6 +158,11 @@ async def admin_resource_approve(content_id: UUID, session: DbSession, actor: Ad
     return await admin_service.approve_resource(session, content_id, actor)
 
 
+@router.post("/content/{kind}/{content_id}/approve")
+async def admin_content_approve(kind: ContentKind, content_id: UUID, session: DbSession, actor: AdminUser) -> Any:
+    return await admin_service.approve_content(session, kind, content_id, actor)
+
+
 @router.get("/events", response_model=PaginatedResponse[AdminActionEventRead])
 async def admin_events(
     session: DbSession,

@@ -23,10 +23,14 @@ async def _build_items(session: AsyncSession, resource_ids: list[UUID]) -> list[
 
 async def create_collection(session: AsyncSession, payload: CollectionCreate, user: User) -> Collection:
     await assert_user_can_write(session, user)
+    is_admin = user.role.value == "admin"
+    is_pending = not is_admin
     collection = Collection(
         author_id=user.id,
         title=payload.title,
         description=payload.description,
+        is_hidden=is_pending,
+        is_pending_review=is_pending,
         tags=await resolve_tags(session, payload.tags),
         items=await _build_items(session, payload.resource_ids),
     )
@@ -35,10 +39,12 @@ async def create_collection(session: AsyncSession, payload: CollectionCreate, us
     await session.flush()
     await log_action(session, ActionEventType.collection_created, user=user, target_type="collection", target_id=collection.id)
     await session.commit()
-    return await get_collection(session, collection.id)
+    return await get_collection(session, collection.id, include_hidden=True)
 
 
-async def list_collections(session: AsyncSession, limit: int, offset: int, include_hidden: bool = False) -> tuple[list[Collection], int]:
+async def list_collections(
+    session: AsyncSession, limit: int, offset: int, include_hidden: bool = False, q: str | None = None
+) -> tuple[list[Collection], int]:
     stmt = select(Collection).options(
         selectinload(Collection.author),
         selectinload(Collection.tags),
@@ -49,6 +55,11 @@ async def list_collections(session: AsyncSession, limit: int, offset: int, inclu
     if not include_hidden:
         stmt = stmt.where(Collection.is_hidden.is_(False))
         count_stmt = count_stmt.where(Collection.is_hidden.is_(False))
+    if q:
+        pattern = f"%{q.strip()}%"
+        search = or_(Collection.title.ilike(pattern), Collection.description.ilike(pattern))
+        stmt = stmt.where(search)
+        count_stmt = count_stmt.where(search)
     stmt = stmt.order_by(Collection.created_at.desc()).limit(limit).offset(offset)
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 
@@ -110,6 +121,25 @@ async def vote_collection(session: AsyncSession, collection_id: UUID, value: int
     return await get_collection(session, collection.id)
 
 
+async def delete_collection(session: AsyncSession, collection_id: UUID, user: User) -> None:
+    await assert_user_can_write(session, user)
+    collection = await get_collection(session, collection_id, include_hidden=True)
+    assert_author_or_admin(collection.author_id, user, "delete this collection")
+    await session.delete(collection)
+    await session.commit()
+
+
+async def approve_collection(session: AsyncSession, collection_id: UUID, actor: User) -> Collection:
+    collection = await get_collection(session, collection_id, include_hidden=True)
+    if not collection.is_pending_review:
+        raise ApiError(409, "NOT_PENDING", "This collection is not pending review.")
+    collection.is_hidden = False
+    collection.is_pending_review = False
+    await log_action(session, ActionEventType.admin_unhide, user=actor, target_type="collection", target_id=collection_id, metadata={"reason": "Approved from review queue"})
+    await session.commit()
+    return await get_collection(session, collection_id)
+
+
 async def search_collections(session: AsyncSession, query: str, limit: int) -> list[Collection]:
     pattern = f"%{query.strip()}%"
     stmt = (
@@ -120,4 +150,5 @@ async def search_collections(session: AsyncSession, query: str, limit: int) -> l
         .limit(limit)
     )
     return list((await session.scalars(stmt)).all())
+
 

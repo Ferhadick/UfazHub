@@ -61,8 +61,23 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
   return (await response.json()) as T;
 }
 
-export function listResources(limit = 12): Promise<PaginatedResponse<ResourceRead>> {
-  return request<PaginatedResponse<ResourceRead>>(`/resources?limit=${limit}`);
+export function listResources(limit = 20, q?: string, type?: string): Promise<PaginatedResponse<ResourceRead>> {
+  const params: Record<string, string | number | undefined> = { limit };
+  if (q) params.q = q;
+  if (type) params.type = type;
+  return request<PaginatedResponse<ResourceRead>>(`/resources${queryString(params)}`);
+}
+
+export function getResource(id: string): Promise<ResourceRead> {
+  return request<ResourceRead>(`/resources/${id}`);
+}
+
+export function deleteResource(token: string, id: string): Promise<void> {
+  return request<void>(`/resources/${id}`, { method: "DELETE", token });
+}
+
+export function voteResource(token: string, id: string, value: number): Promise<ResourceRead> {
+  return request<ResourceRead>(`/resources/${id}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
 }
 
 export function listFeed(limit = 12): Promise<FeedItem[]> {
@@ -81,16 +96,36 @@ export function getArticle(slug: string): Promise<ArticleRead> {
   return request<ArticleRead>(`/articles/${slug}`);
 }
 
-export function listCollections(limit = 20): Promise<PaginatedResponse<CollectionRead>> {
-  return request<PaginatedResponse<CollectionRead>>(`/collections?limit=${limit}`);
+export function deleteArticle(token: string, slug: string): Promise<void> {
+  return request<void>(`/articles/${slug}`, { method: "DELETE", token });
+}
+
+export function voteArticle(token: string, slug: string, value: number): Promise<ArticleRead> {
+  return request<ArticleRead>(`/articles/${slug}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
+}
+
+export function listCollections(limit = 20, q?: string): Promise<PaginatedResponse<CollectionRead>> {
+  const params: Record<string, string | number | undefined> = { limit };
+  if (q) params.q = q;
+  return request<PaginatedResponse<CollectionRead>>(`/collections${queryString(params)}`);
 }
 
 export function getCollection(id: string): Promise<CollectionRead> {
   return request<CollectionRead>(`/collections/${id}`);
 }
 
-export function listPeople(limit = 20): Promise<PaginatedResponse<UserPublic>> {
-  return request<PaginatedResponse<UserPublic>>(`/people?limit=${limit}`);
+export function deleteCollection(token: string, id: string): Promise<void> {
+  return request<void>(`/collections/${id}`, { method: "DELETE", token });
+}
+
+export function voteCollection(token: string, id: string, value: number): Promise<CollectionRead> {
+  return request<CollectionRead>(`/collections/${id}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
+}
+
+export function listPeople(limit = 20, q?: string): Promise<PaginatedResponse<UserPublic>> {
+  const params: Record<string, string | number | undefined> = { limit };
+  if (q) params.q = q;
+  return request<PaginatedResponse<UserPublic>>(`/people${queryString(params)}`);
 }
 
 export function getPublicProfile(username: string): Promise<UserPublic> {
@@ -121,9 +156,41 @@ export function getMe(token: string): Promise<UserPublic> {
 
 export function updateMe(
   token: string,
-  payload: { name?: string; bio?: string; faculty?: string; avatar_url?: string }
+  payload: {
+    name?: string;
+    bio?: string;
+    faculty?: string;
+    avatar_url?: string;
+    github_url?: string;
+    linkedin_url?: string;
+    telegram_url?: string;
+    youtube_url?: string;
+    website_url?: string;
+  }
 ): Promise<UserPublic> {
   return request<UserPublic>("/users/me", { method: "PATCH", token, body: JSON.stringify(payload) });
+}
+
+export async function uploadAvatar(token: string, file: File): Promise<UserPublic> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${API_BASE}/users/me/avatar`, {
+    method: "POST",
+    headers,
+    body: formData,
+    credentials: "include"
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: string; code?: string } | null;
+    throw new ApiClientError(body?.detail ?? "Avatar upload failed", response.status, body?.code ?? "UPLOAD_FAILED");
+  }
+  return response.json();
+}
+
+export function deleteAvatar(token: string): Promise<UserPublic> {
+  return request<UserPublic>("/users/me/avatar", { method: "DELETE", token });
 }
 
 export function refreshToken(): Promise<TokenResponse> {
@@ -309,6 +376,14 @@ export function adminDeleteContent(token: string, kind: ContentKind, id: string)
 
 export function adminApproveResource(token: string, id: string): Promise<AdminResourceRead> {
   return request<AdminResourceRead>(`/admin/content/resource/${id}/approve`, { method: "POST", token });
+}
+
+export function adminApproveContent(
+  token: string,
+  kind: ContentKind,
+  id: string
+): Promise<AdminResourceRead | AdminArticleRead | AdminCollectionRead> {
+  return request(`/admin/content/${kind}/${id}/approve`, { method: "POST", token });
 }
 
 export function adminListEvents(

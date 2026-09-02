@@ -40,8 +40,8 @@ from app.schemas.collection import CollectionUpdate
 from app.schemas.resource import ResourceUpdate
 from app.schemas.user import UserPublic
 from app.schemas.admin import MuteBody, ReasonBody
-from app.services.articles import get_article_by_id, update_article
-from app.services.collections import get_collection, update_collection
+from app.services.articles import approve_article as approve_article_svc, get_article_by_id, update_article
+from app.services.collections import approve_collection as approve_collection_svc, get_collection, update_collection
 from app.services.events import log_action
 from app.services.moderation import (
     ban_user as moderate_ban,
@@ -323,9 +323,9 @@ async def list_content(
     if hidden is not None:
         stmt = stmt.where(model.is_hidden.is_(hidden))
         count_stmt = count_stmt.where(model.is_hidden.is_(hidden))
-    if pending_review is not None and kind == "resource":
-        stmt = stmt.where(Resource.is_pending_review.is_(pending_review))
-        count_stmt = count_stmt.where(Resource.is_pending_review.is_(pending_review))
+    if pending_review is not None:
+        stmt = stmt.where(model.is_pending_review.is_(pending_review))
+        count_stmt = count_stmt.where(model.is_pending_review.is_(pending_review))
     if author_id is not None:
         stmt = stmt.where(model.author_id == author_id)
         count_stmt = count_stmt.where(model.author_id == author_id)
@@ -505,7 +505,21 @@ async def approve_resource(session: AsyncSession, resource_id: UUID, actor: User
     return AdminResourceRead.model_validate(resource)
 
 
+async def approve_content(
+    session: AsyncSession, kind: ContentKind, content_id: UUID, actor: User
+) -> AdminResourceRead | AdminArticleRead | AdminCollectionRead:
+    if kind == "resource":
+        resource = await approve_resource_svc(session, content_id, actor)
+        return AdminResourceRead.model_validate(resource)
+    if kind == "article":
+        article = await approve_article_svc(session, content_id, actor)
+        return AdminArticleRead.model_validate(article)
+    collection = await approve_collection_svc(session, content_id, actor)
+    return AdminCollectionRead.model_validate(collection)
+
+
 __all__ = [
+    "approve_content",
     "approve_resource",
     "ban_user",
     "create_admin_account",

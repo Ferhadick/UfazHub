@@ -34,7 +34,10 @@ export function FeedList({ items }: { items: FeedItem[] }) {
             </h3>
             <p className="mt-2 max-w-3xl font-sans text-sm leading-6 text-muted">{item.description}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-accent">
-              <Link href={`/profile/${item.author_username}`} className="border-b border-transparent font-sans font-bold text-ink transition-colors hover:border-accent hover:text-accent">
+              <Link href={`/profile/${item.author_username}`} className="inline-flex items-center gap-1.5 font-sans font-bold text-ink transition-colors hover:text-accent">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden border border-line bg-clay font-accent text-[8px] text-accent">
+                  {item.author_name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                </span>
                 {item.author_name}
               </Link>
               {item.tags.map((tag) => (

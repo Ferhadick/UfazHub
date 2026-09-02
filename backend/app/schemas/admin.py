@@ -100,12 +100,14 @@ class AdminResourceRead(ResourceRead):
 
 class AdminArticleRead(ArticleRead):
     is_hidden: bool
+    is_pending_review: bool = False
     hidden_reason: str | None
     hidden_at: datetime | None
 
 
 class AdminCollectionRead(CollectionRead):
     is_hidden: bool
+    is_pending_review: bool = False
     hidden_reason: str | None
     hidden_at: datetime | None
 

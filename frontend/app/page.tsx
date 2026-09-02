@@ -27,9 +27,9 @@ export default async function HomePage() {
           <div>
             <div className="text-xs uppercase tracking-[0.24em] text-accent"><span className="mr-2 inline-block h-2 w-2 bg-clay" />An open index of UFAZ</div>
             <div className="mt-9 hero-title">
-              <div>Things</div>
-              <div className="hero-title-blue">Worth</div>
-              <div className="hero-title-outline">Knowing.</div>
+              <div className="whitespace-nowrap">Things</div>
+              <div className="hero-title-blue whitespace-nowrap">Worth</div>
+              <div className="hero-title-outline whitespace-nowrap">Knowing.</div>
             </div>
           </div>
           <div className="flex flex-col justify-center">

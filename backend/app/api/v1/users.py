@@ -16,8 +16,9 @@ async def people(
     session: DbSession,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
+    q: str | None = None,
 ) -> PaginatedResponse[UserPublic]:
-    items, total = await leaderboard(session, limit, offset)
+    items, total = await leaderboard(session, limit, offset, q=q)
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 

@@ -38,6 +38,8 @@ export function ArticleForm({ initial, submitLabel = "Publish note", onSave }: A
     defaultValues: { status: "published", tags: "", ...initial }
   });
 
+  const [submittedForReview, setSubmittedForReview] = useState(false);
+
   async function onSubmit(values: FormValues) {
     const token = window.localStorage.getItem(tokenKey);
     if (!token) {
@@ -56,7 +58,10 @@ export function ArticleForm({ initial, submitLabel = "Publish note", onSave }: A
       await onSave(payload);
       return;
     }
-    await createArticle(token, payload);
+    const result = await createArticle(token, payload);
+    if (values.status === "published" && result.is_pending_review) {
+      setSubmittedForReview(true);
+    }
     form.reset({ status: "published", tags: "" });
     setPreview("");
   }
@@ -135,6 +140,14 @@ export function ArticleForm({ initial, submitLabel = "Publish note", onSave }: A
             </label>
           </div>
           {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
+          {submittedForReview ? (
+            <div className="border border-line bg-clay/40 p-4">
+              <div className="font-sans text-xs font-bold uppercase tracking-wider text-accent">Submitted for review</div>
+              <p className="mt-1 font-sans text-xs text-muted">
+                Your article has been submitted and is pending admin approval. It will appear in the archive once reviewed.
+              </p>
+            </div>
+          ) : null}
           <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
             {form.formState.isSubmitting ? "Saving..." : submitLabel}
           </Button>

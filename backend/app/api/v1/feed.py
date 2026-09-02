@@ -24,7 +24,7 @@ async def feed(session: DbSession, limit: Annotated[int, Query(ge=1, le=30)] = 1
                 kind=resource.type.value,
                 title=resource.title,
                 description=resource.description,
-                href=resource.url,
+                href=f"/resources/{resource.id}",
                 author_name=resource.author.name,
                 author_username=resource.author.username,
                 tags=[tag.name for tag in resource.tags],

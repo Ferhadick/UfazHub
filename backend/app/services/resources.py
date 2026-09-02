@@ -58,6 +58,7 @@ async def list_resources(
     offset: int,
     resource_type: str | None = None,
     include_hidden: bool = False,
+    q: str | None = None,
 ) -> tuple[list[Resource], int]:
     stmt = select(Resource).options(selectinload(Resource.author), selectinload(Resource.tags))
     count_stmt = select(func.count()).select_from(Resource)
@@ -67,6 +68,20 @@ async def list_resources(
     if resource_type:
         stmt = stmt.where(Resource.type == resource_type)
         count_stmt = count_stmt.where(Resource.type == resource_type)
+    if q:
+        pattern = f"%{q.strip()}%"
+        searchable_fields = (
+            Resource.title.ilike(pattern),
+            Resource.description.ilike(pattern),
+            Resource.category.ilike(pattern),
+            Resource.use_case.ilike(pattern),
+            Resource.prerequisites.ilike(pattern),
+            Resource.best_part.ilike(pattern),
+            Resource.warning.ilike(pattern),
+            Resource.student_note.ilike(pattern),
+        )
+        stmt = stmt.where(or_(*searchable_fields))
+        count_stmt = count_stmt.where(or_(*searchable_fields))
     stmt = stmt.order_by(Resource.created_at.desc()).limit(limit).offset(offset)
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 

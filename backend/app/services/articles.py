@@ -40,6 +40,8 @@ async def _unique_slug(session: AsyncSession, title: str, current_slug: str | No
 
 async def create_article(session: AsyncSession, payload: ArticleCreate, user: User) -> Article:
     await assert_user_can_write(session, user)
+    is_admin = user.role.value == "admin"
+    is_pending = (payload.status == ArticleStatus.published) and (not is_admin)
     published_at = datetime.now(timezone.utc) if payload.status == ArticleStatus.published else None
     article = Article(
         author_id=user.id,
@@ -51,6 +53,8 @@ async def create_article(session: AsyncSession, payload: ArticleCreate, user: Us
         reading_time=_reading_time(payload.content),
         status=payload.status,
         published_at=published_at,
+        is_hidden=is_pending,
+        is_pending_review=is_pending,
         tags=await resolve_tags(session, payload.tags),
     )
     session.add(article)
@@ -59,7 +63,7 @@ async def create_article(session: AsyncSession, payload: ArticleCreate, user: Us
     if payload.status == ArticleStatus.published:
         await log_action(session, ActionEventType.article_published, user=user, target_type="article", target_id=article.id)
     await session.commit()
-    return await get_article_by_slug(session, article.slug, include_drafts=True)
+    return await get_article_by_slug(session, article.slug, include_drafts=True, include_hidden=True)
 
 
 async def list_articles(
@@ -152,6 +156,25 @@ async def vote_article(session: AsyncSession, slug: str, value: int, user: User)
     return await get_article_by_slug(session, article.slug)
 
 
+async def delete_article(session: AsyncSession, slug: str, user: User) -> None:
+    await assert_user_can_write(session, user)
+    article = await get_article_by_slug(session, slug, include_drafts=True, include_hidden=True)
+    assert_author_or_admin(article.author_id, user, "delete this article")
+    await session.delete(article)
+    await session.commit()
+
+
+async def approve_article(session: AsyncSession, article_id: UUID, actor: User) -> Article:
+    article = await get_article_by_id(session, article_id, include_hidden=True, include_drafts=True)
+    if not article.is_pending_review:
+        raise ApiError(409, "NOT_PENDING", "This article is not pending review.")
+    article.is_hidden = False
+    article.is_pending_review = False
+    await log_action(session, ActionEventType.admin_unhide, user=actor, target_type="article", target_id=article_id, metadata={"reason": "Approved from review queue"})
+    await session.commit()
+    return await get_article_by_id(session, article_id, include_drafts=True)
+
+
 async def search_articles(session: AsyncSession, query: str, limit: int) -> list[Article]:
     pattern = f"%{query.strip()}%"
     stmt = (
@@ -166,4 +189,5 @@ async def search_articles(session: AsyncSession, query: str, limit: int) -> list
         .limit(limit)
     )
     return list((await session.scalars(stmt)).all())
+
 

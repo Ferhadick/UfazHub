@@ -8,7 +8,7 @@ from app.models import ActionEventType, GuestSession, User
 from app.schemas.article import ArticleCreate, ArticleRead, ArticleUpdate
 from app.schemas.common import PaginatedResponse
 from app.schemas.resource import VoteRequest
-from app.services.articles import create_article, get_article_by_slug, list_articles, update_article, vote_article
+from app.services.articles import create_article, delete_article, get_article_by_slug, list_articles, update_article, vote_article
 from app.services.events import ensure_guest_session, log_action
 
 router = APIRouter(prefix="/articles", tags=["articles"])
@@ -55,6 +55,12 @@ async def update(slug: str, payload: ArticleUpdate, session: DbSession, user: An
     return await update_article(session, slug, payload, user)
 
 
+@router.delete("/{slug}", status_code=204)
+async def destroy(slug: str, session: DbSession, user: Annotated[User, Depends(get_current_user)]) -> Response:
+    await delete_article(session, slug, user)
+    return Response(status_code=204)
+
+
 @router.post("/{slug}/vote", response_model=ArticleRead)
 async def vote(
     slug: str,
@@ -71,4 +77,5 @@ async def vote(
         await session.commit()
         raise ApiError(401, "AUTH_REQUIRED", "Create an account to vote and build reputation.")
     return await vote_article(session, slug, payload.value, user)
+
 
