@@ -45,7 +45,7 @@ export function AuthNav() {
 
   if (!isLoggedIn) {
     return (
-      <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 sm:gap-4">
         <Link href="/login" className="font-sans transition-colors hover:text-clay">
           Log in
         </Link>
@@ -57,7 +57,7 @@ export function AuthNav() {
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+    <div className="flex shrink-0 flex-wrap items-center gap-3 sm:gap-4">
       {isAdmin ? (
         <Link href={"/admin" as Route} className="font-sans transition-colors hover:text-clay">
           Admin

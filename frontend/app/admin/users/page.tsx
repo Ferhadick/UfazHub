@@ -31,26 +31,39 @@ export default function AdminUsersPage() {
   }, [q, status, role]);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-      <div className="flex flex-col gap-4 border-t border-line pt-5 md:flex-row md:items-end md:justify-between">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:py-12 md:px-8">
+      <div className="flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.18em] text-muted">{total} accounts</div>
-          <h2 className="mt-1 font-accent text-4xl">People</h2>
+          <h2 className="mt-1 font-accent text-3xl sm:text-4xl">People</h2>
         </div>
-        <Link href={"/admin/users/new" as Route} className="border border-line px-4 py-2 font-sans font-bold hover:bg-clay hover:text-accent">
+        <Link href={"/admin/users/new" as Route} className="w-fit border border-line px-4 py-2 font-sans font-bold hover:bg-clay hover:text-accent">
           Create admin
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-3 md:grid-cols-3">
-        <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search name, email, username" className="border border-line bg-paper px-3 py-3" />
-        <select value={status} onChange={(event) => setStatus(event.target.value as UserStatus | "")} className="border border-line bg-paper px-3 py-3">
+      <div className="mt-6 grid gap-3 grid-cols-1 sm:grid-cols-3">
+        <input
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          placeholder="Search name, email, username"
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        />
+        <select
+          value={status}
+          onChange={(event) => setStatus(event.target.value as UserStatus | "")}
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        >
           <option value="">Any status</option>
           <option value="active">Active</option>
           <option value="muted">Muted</option>
           <option value="banned">Banned</option>
         </select>
-        <select value={role} onChange={(event) => setRole(event.target.value as UserRole | "")} className="border border-line bg-paper px-3 py-3">
+        <select
+          value={role}
+          onChange={(event) => setRole(event.target.value as UserRole | "")}
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        >
           <option value="">Any role</option>
           <option value="user">User</option>
           <option value="admin">Admin</option>
@@ -59,7 +72,7 @@ export default function AdminUsersPage() {
 
       {error ? <p className="mt-4 font-sans text-sm text-accent">{error}</p> : null}
 
-      <div className="mt-8 overflow-x-auto border-y border-line">
+      <div className="mt-8 -mx-4 overflow-x-auto border-y border-line px-4 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[44rem] text-left font-sans text-sm">
           <thead className="text-xs uppercase tracking-[0.14em] text-muted">
             <tr className="border-b border-line">

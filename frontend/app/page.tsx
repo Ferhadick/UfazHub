@@ -23,7 +23,7 @@ export default async function HomePage() {
   return (
     <main>
       <section className="border-b border-line bg-paper">
-        <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-20 md:grid-cols-[1.35fr_0.85fr] md:px-8 md:pb-24 md:pt-24">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-12 pt-10 md:grid-cols-[1.35fr_0.85fr] md:gap-12 md:px-8 md:pb-24 md:pt-24">
           <div>
             <div className="text-xs uppercase tracking-[0.24em] text-accent"><span className="mr-2 inline-block h-2 w-2 bg-clay" />An open index of UFAZ</div>
             <div className="mt-9 hero-title">
@@ -45,7 +45,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="index" className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+      <section id="index" className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-16">
         <div className="grid gap-16 md:grid-cols-[1.6fr_0.9fr]">
           <HomeFeedSection items={feed} />
 

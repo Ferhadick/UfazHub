@@ -180,23 +180,26 @@ export function CollectionForm({ initial, submitLabel = "Create collection", onS
 
         <input {...form.register("tags")} placeholder="Tags, comma separated" className="w-full border border-line bg-paper px-3 py-3 transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
         {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
           {form.formState.isSubmitting ? "Saving..." : submitLabel}
         </Button>
       </div>
 
-      <aside className="h-fit border-l-4 border-line pl-5">
-        <div className="text-xs uppercase tracking-[0.16em] text-accent">Selected order</div>
+      <aside className="h-fit border-t-4 border-line pt-6 lg:border-t-0 lg:border-l-4 lg:pt-0 lg:pl-5">
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-[0.16em] text-accent">Selected order</div>
+          <span className="font-body text-xs text-muted lg:hidden">{selectedResources.length} items</span>
+        </div>
         <div className="mt-4 divide-y divide-line border-y border-line">
           {selectedResources.length === 0 ? (
-            <div className="py-6 font-sans text-sm text-muted">Pick resources from the search list.</div>
+            <div className="py-6 font-sans text-sm text-muted">Pick resources from the search list above.</div>
           ) : (
             selectedResources.map((resource, index) => (
               <div key={resource.id} className="py-4">
                 <div className="flex items-start gap-3">
                   <span className="font-accent text-xl text-accent">{String(index + 1).padStart(2, "0")}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="font-sans text-sm font-bold leading-5">{resource.title}</div>
+                    <div className="font-sans text-sm font-bold leading-5 break-words">{resource.title}</div>
                     <div className="mt-1 text-[11px] text-muted">{resource.category}</div>
                   </div>
                 </div>
@@ -205,27 +208,27 @@ export function CollectionForm({ initial, submitLabel = "Create collection", onS
                     type="button"
                     onClick={() => moveResource(resource.id, -1)}
                     disabled={index === 0}
-                    className="border border-line p-1.5 text-accent transition-colors hover:bg-clay disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex h-9 w-9 items-center justify-center border border-line text-accent transition-colors active:bg-clay hover:bg-clay disabled:cursor-not-allowed disabled:opacity-30"
                     aria-label={`Move ${resource.title} up`}
                   >
-                    <ArrowUp className="h-3.5 w-3.5" />
+                    <ArrowUp className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => moveResource(resource.id, 1)}
                     disabled={index === selectedResources.length - 1}
-                    className="border border-line p-1.5 text-accent transition-colors hover:bg-clay disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex h-9 w-9 items-center justify-center border border-line text-accent transition-colors active:bg-clay hover:bg-clay disabled:cursor-not-allowed disabled:opacity-30"
                     aria-label={`Move ${resource.title} down`}
                   >
-                    <ArrowDown className="h-3.5 w-3.5" />
+                    <ArrowDown className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => removeResource(resource.id)}
-                    className="border border-line p-1.5 text-accent transition-colors hover:bg-clay"
+                    className="flex h-9 w-9 items-center justify-center border border-line text-accent transition-colors active:bg-clay hover:bg-clay"
                     aria-label={`Remove ${resource.title}`}
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>

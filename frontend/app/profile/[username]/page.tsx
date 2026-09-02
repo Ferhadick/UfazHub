@@ -52,9 +52,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
         <div>
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <div className="text-xs uppercase tracking-[0.18em] text-muted">Profile / @{profile.username}</div>
-              <h1 className="mt-3 max-w-4xl font-accent text-5xl leading-none md:text-7xl">{profile.name}</h1>
+              <h1 className="mt-3 max-w-4xl font-accent text-4xl leading-none break-words md:text-7xl">{profile.name}</h1>
             </div>
             <ProfileEditLink username={profile.username} />
           </div>
@@ -80,14 +80,14 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               )}
             </div>
 
-            <aside className="border-l-4 border-line pl-5">
+            <aside className="border-t-2 border-line pt-5 lg:border-t-0 lg:border-l-4 lg:pt-0 lg:pl-5">
               <div className="text-xs uppercase tracking-[0.16em] text-accent">Contact</div>
               <div className="mt-4 space-y-3 font-sans text-sm">
-                <a href={`mailto:${profile.email}`} className="flex items-center gap-2 border-b border-line pb-2 text-accent">
-                  <Mail className="h-4 w-4" /> {profile.email}
+                <a href={`mailto:${profile.email}`} className="flex items-center gap-2 border-b border-line pb-2 text-accent break-all">
+                  <Mail className="h-4 w-4 shrink-0" /> {profile.email}
                 </a>
                 <div className="flex items-center gap-2 border-b border-line pb-2 text-muted">
-                  <UserRound className="h-4 w-4" /> @{profile.username}
+                  <UserRound className="h-4 w-4 shrink-0" /> @{profile.username}
                 </div>
               </div>
             </aside>
@@ -103,25 +103,31 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
           </div>
           <div className="divide-y divide-line border-b border-line">
             {archive.articles.map((article, index) => (
-              <Link key={article.id} href={`/articles/${article.slug}`} className="grid gap-4 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem]">
-                <span className="font-accent text-xl text-accent">{String(index + 1).padStart(2, "0")}</span>
-                <span>
+              <Link key={article.id} href={`/articles/${article.slug}`} className="grid gap-3 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem] md:gap-4">
+                <div className="flex items-baseline justify-between gap-4 md:block">
+                  <span className="font-accent text-xl text-accent">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="font-accent text-xl md:hidden">{article.upvotes - article.downvotes}</span>
+                </div>
+                <div className="min-w-0">
                   <span className="block text-xs uppercase tracking-[0.16em] text-muted">Article / {article.reading_time} min read</span>
-                  <span className="mt-1 block font-accent text-2xl leading-tight">{article.title}</span>
-                </span>
-                <span className="text-right font-accent text-xl">{article.upvotes - article.downvotes}</span>
+                  <span className="mt-1 block font-accent text-2xl leading-tight break-words">{article.title}</span>
+                </div>
+                <span className="hidden text-right font-accent text-xl md:block">{article.upvotes - article.downvotes}</span>
               </Link>
             ))}
             {archive.resources.map((resource, index) => (
-              <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" className="grid gap-4 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem]">
-                <span className="font-accent text-xl text-accent">{String(archive.articles.length + index + 1).padStart(2, "0")}</span>
-                <span>
+              <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" className="grid gap-3 py-5 transition-colors hover:bg-paper/70 md:grid-cols-[3rem_1fr_4rem] md:gap-4">
+                <div className="flex items-baseline justify-between gap-4 md:block">
+                  <span className="font-accent text-xl text-accent">{String(archive.articles.length + index + 1).padStart(2, "0")}</span>
+                  <span className="font-accent text-xl md:hidden">{resource.upvotes - resource.downvotes}</span>
+                </div>
+                <div className="min-w-0">
                   <span className="block text-xs uppercase tracking-[0.16em] text-muted">{resource.type.replaceAll("_", " ")} / {resource.difficulty}</span>
-                  <span className="mt-1 flex items-center gap-2 font-accent text-2xl leading-tight">
-                    {resource.title} <ExternalLink className="h-4 w-4" />
+                  <span className="mt-1 flex items-center gap-2 font-accent text-2xl leading-tight break-words">
+                    {resource.title} <ExternalLink className="h-4 w-4 shrink-0" />
                   </span>
-                </span>
-                <span className="text-right font-accent text-xl">{resource.upvotes - resource.downvotes}</span>
+                </div>
+                <span className="hidden text-right font-accent text-xl md:block">{resource.upvotes - resource.downvotes}</span>
               </a>
             ))}
             {totalPublished === 0 && (

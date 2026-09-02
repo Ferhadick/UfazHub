@@ -31,13 +31,16 @@ export function ResourceList({ resources }: { resources: ResourceRead[] }) {
   return (
     <div className="divide-y divide-line border-y border-line">
       {resources.map((resource, index) => (
-        <article key={resource.id} className="grid gap-4 py-6 transition-colors hover:bg-paper/70 md:grid-cols-[4rem_1fr_8rem]">
-          <div className="font-accent text-2xl text-muted">{String(index + 1).padStart(2, "0")}</div>
-          <div>
+        <article key={resource.id} className="grid gap-3 py-6 transition-colors hover:bg-paper/70 md:grid-cols-[4rem_1fr_8rem] md:gap-4">
+          <div className="flex items-baseline justify-between gap-4 md:block">
+            <div className="font-accent text-2xl text-muted">{String(index + 1).padStart(2, "0")}</div>
+            <div className="font-accent text-2xl md:hidden">{resource.upvotes - resource.downvotes}</div>
+          </div>
+          <div className="min-w-0">
             <div className="text-xs uppercase tracking-[0.16em] text-muted">
               {labels[resource.type]} / {metadata(resource)}
             </div>
-            <h3 className="mt-2 font-accent text-3xl leading-tight">
+            <h3 className="mt-2 font-accent text-2xl leading-tight break-words md:text-3xl">
               <a href={resource.url} target="_blank" rel="noreferrer">
                 {resource.title}
               </a>
@@ -88,7 +91,7 @@ export function ResourceList({ resources }: { resources: ResourceRead[] }) {
               ))}
             </div>
           </div>
-          <div className="text-right font-accent text-2xl">{resource.upvotes - resource.downvotes}</div>
+          <div className="hidden text-right font-accent text-2xl md:block">{resource.upvotes - resource.downvotes}</div>
         </article>
       ))}
     </div>

@@ -10,17 +10,23 @@ export default async function CollectionDetailPage({ params }: { params: Promise
     <main className="mx-auto max-w-5xl px-4 py-16 md:px-8">
       <div className="border-t border-line pt-5">
         <div className="text-xs uppercase tracking-[0.18em] text-muted">Collection / {collection.items.length} resources</div>
-        <h1 className="mt-4 font-accent text-6xl leading-tight">{collection.title}</h1>
+        <h1 className="mt-4 font-accent text-4xl leading-tight break-words md:text-6xl">{collection.title}</h1>
         <p className="mt-5 max-w-2xl leading-7 text-muted">{collection.description}</p>
       </div>
       <div className="mt-10 divide-y divide-line border-y border-line">
         {collection.items.map((item) => (
-          <a key={item.resource.id} href={item.resource.url} className="grid gap-4 py-5 md:grid-cols-[4rem_1fr]">
-            <div className="font-accent text-2xl text-muted">{String(item.position).padStart(2, "0")}</div>
-            <div>
-              <div className="text-xs uppercase tracking-[0.16em] text-muted">{item.resource.type}</div>
-              <h2 className="mt-1 font-accent text-3xl">{item.resource.title}</h2>
-              <p className="mt-2 text-sm text-muted">{item.resource.description}</p>
+          <a
+            key={item.resource.id}
+            href={item.resource.url}
+            target="_blank"
+            rel="noreferrer"
+            className="grid grid-cols-[2.5rem_1fr] gap-3 py-5 transition-colors hover:bg-paper/70 sm:grid-cols-[4rem_1fr] sm:gap-4"
+          >
+            <div className="font-accent text-xl text-accent sm:text-2xl">{String(item.position).padStart(2, "0")}</div>
+            <div className="min-w-0">
+              <div className="text-xs uppercase tracking-[0.16em] text-muted">{item.resource.type.replaceAll("_", " ")} ↗</div>
+              <h2 className="mt-1 font-accent text-2xl leading-tight break-words sm:text-3xl">{item.resource.title}</h2>
+              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.resource.description}</p>
             </div>
           </a>
         ))}

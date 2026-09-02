@@ -158,8 +158,8 @@ export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: 
 
         <section className="border-b border-line pb-5">
           <div className="text-xs uppercase tracking-[0.16em] text-accent">03 / Classification</div>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <select {...form.register("type")} className="border border-line bg-paper px-3 py-3">
+          <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-3">
+            <select {...form.register("type")} className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none">
               <option value="course">Course</option>
               <option value="article">Article</option>
               <option value="video">Video</option>
@@ -168,23 +168,23 @@ export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: 
               <option value="website">Website</option>
               <option value="book">Book</option>
             </select>
-            <select {...form.register("difficulty")} className="border border-line bg-paper px-3 py-3">
+            <select {...form.register("difficulty")} className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none">
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>
               <option value="advanced">Advanced</option>
             </select>
-            <input {...form.register("category")} placeholder="Category" className="border border-line bg-paper px-3 py-3" />
+            <input {...form.register("category")} placeholder="Category" className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
           </div>
-          <input {...form.register("tags")} placeholder="Tags, comma separated" className="mt-4 w-full border border-line bg-paper px-3 py-3" />
+          <input {...form.register("tags")} placeholder="Tags, comma separated" className="mt-4 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
         </section>
 
         {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
           {form.formState.isSubmitting ? "Saving..." : submitLabel}
         </Button>
       </div>
 
-      <aside className="h-fit border-l-4 border-line pl-5">
+      <aside className="h-fit border-t-4 border-line pt-6 lg:border-t-0 lg:border-l-4 lg:pt-0 lg:pl-5">
         <div className="text-xs uppercase tracking-[0.16em] text-accent">Useful entries feel like</div>
         <div className="mt-4 space-y-5 font-sans text-sm leading-6 text-muted">
           <p>A future student should know why this link matters before opening it.</p>

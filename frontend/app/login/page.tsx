@@ -6,7 +6,7 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md px-4 py-16">
       <div className="mb-8 border-t border-line pt-5">
         <div className="text-xs uppercase tracking-[0.18em] text-muted">Account</div>
-        <h1 className="mt-2 font-accent text-5xl">Log in</h1>
+        <h1 className="mt-2 font-accent text-4xl leading-none md:text-5xl">Log in</h1>
       </div>
       <LoginForm />
       <p className="mt-6 border-t border-line pt-5 font-sans text-sm text-muted">

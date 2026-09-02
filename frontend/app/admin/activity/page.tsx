@@ -44,21 +44,29 @@ export default function AdminActivityPage() {
   }, [eventType, actorType]);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:py-12 md:px-8">
       <div className="border-t border-line pt-5">
         <div className="text-xs uppercase tracking-[0.18em] text-muted">{total} events</div>
-        <h2 className="mt-1 font-accent text-4xl">Activity ledger</h2>
+        <h2 className="mt-1 font-accent text-3xl sm:text-4xl">Activity ledger</h2>
       </div>
 
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
-        <select value={eventType} onChange={(event) => setEventType(event.target.value)} className="border border-line bg-paper px-3 py-3">
+      <div className="mt-6 grid gap-3 grid-cols-1 sm:grid-cols-2">
+        <select
+          value={eventType}
+          onChange={(event) => setEventType(event.target.value)}
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        >
           {EVENT_TYPES.map((type) => (
             <option key={type || "all"} value={type}>
               {type ? type.replaceAll("_", " ") : "Any event"}
             </option>
           ))}
         </select>
-        <select value={actorType} onChange={(event) => setActorType(event.target.value as typeof actorType)} className="border border-line bg-paper px-3 py-3">
+        <select
+          value={actorType}
+          onChange={(event) => setActorType(event.target.value as typeof actorType)}
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        >
           <option value="">Any actor</option>
           <option value="user">User</option>
           <option value="guest">Guest</option>
@@ -67,7 +75,7 @@ export default function AdminActivityPage() {
 
       {error ? <p className="mt-4 font-sans text-sm text-accent">{error}</p> : null}
 
-      <div className="mt-8 overflow-x-auto border-y border-line">
+      <div className="mt-8 -mx-4 overflow-x-auto border-y border-line px-4 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[48rem] text-left font-sans text-sm">
           <thead className="text-xs uppercase tracking-[0.14em] text-muted">
             <tr className="border-b border-line">

@@ -2,6 +2,10 @@
 	email {$CADDY_EMAIL:admin@example.com}
 }
 
+www.{$APP_DOMAIN:localhost} {
+	redir https://{$APP_DOMAIN:localhost}{uri} permanent
+}
+
 {$APP_DOMAIN:localhost} {
 	encode gzip
 

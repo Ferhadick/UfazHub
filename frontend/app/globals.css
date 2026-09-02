@@ -42,11 +42,13 @@ html {
   background: var(--color-background);
   color: var(--color-foreground);
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   font-family: var(--font-body);
+  overflow-x: clip;
 }
 
 main {
@@ -83,10 +85,11 @@ button {
 
 .hero-title {
   font-family: var(--font-accent);
-  font-size: 4.8rem;
+  font-size: clamp(2.55rem, 14vw, 4.8rem);
   line-height: 0.86;
   text-transform: uppercase;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .hero-title-blue {
@@ -132,6 +135,14 @@ button {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
 

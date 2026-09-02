@@ -58,10 +58,10 @@ export default function AdminContentPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:py-12 md:px-8">
       <div className="border-t border-line pt-5">
         <div className="text-xs uppercase tracking-[0.18em] text-muted">{total} records</div>
-        <h2 className="mt-1 font-accent text-4xl">Holdings</h2>
+        <h2 className="mt-1 font-accent text-3xl sm:text-4xl">Holdings</h2>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -70,16 +70,27 @@ export default function AdminContentPage() {
             key={tab}
             type="button"
             onClick={() => setKind(tab)}
-            className={kind === tab ? "border border-ink bg-ink px-3 py-2 font-sans text-sm text-paper" : "border border-line px-3 py-2 font-sans text-sm"}
+            className={`border px-3.5 py-2 font-sans text-xs uppercase tracking-wider transition-colors ${
+              kind === tab ? "border-accent bg-accent font-bold text-paper shadow-[3px_3px_0_var(--color-clay)]" : "border-line bg-paper text-ink hover:border-accent"
+            }`}
           >
             {tab}
           </button>
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search title" className="border border-line bg-paper px-3 py-3" />
-        <select value={hidden} onChange={(event) => setHidden(event.target.value as typeof hidden)} className="border border-line bg-paper px-3 py-3">
+      <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2">
+        <input
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          placeholder="Search title"
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        />
+        <select
+          value={hidden}
+          onChange={(event) => setHidden(event.target.value as typeof hidden)}
+          className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+        >
           <option value="all">Visible and hidden</option>
           <option value="false">Visible only</option>
           <option value="true">Hidden only</option>

@@ -115,13 +115,13 @@ export default function AdminUserDetailPage() {
   };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12 md:px-8">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:py-12 md:px-8">
       <div className="border-t border-line pt-5">
         <div className="text-xs uppercase tracking-[0.18em] text-muted">
           {user.role} / {user.status} / {user.warning_count} warnings
         </div>
-        <h2 className="mt-2 font-accent text-5xl">{user.name}</h2>
-        <p className="mt-2 font-sans text-sm text-muted">@{user.username} · {user.email}</p>
+        <h2 className="mt-2 font-accent text-3xl break-words sm:text-5xl">{user.name}</h2>
+        <p className="mt-2 font-sans text-sm text-muted break-all">@{user.username} · {user.email}</p>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -149,12 +149,27 @@ export default function AdminUserDetailPage() {
 
       <form onSubmit={saveProfile} className="mt-10 grid gap-4 border-t border-line pt-6">
         <h3 className="font-accent text-2xl">Edit profile</h3>
-        <input name="name" defaultValue={user.name} className="border border-line bg-paper px-3 py-3" />
-        <input name="username" defaultValue={user.username} className="border border-line bg-paper px-3 py-3" />
-        <input name="email" type="email" defaultValue={user.email} className="border border-line bg-paper px-3 py-3" />
-        <input name="faculty" defaultValue={user.faculty ?? ""} placeholder="Faculty" className="border border-line bg-paper px-3 py-3" />
-        <textarea name="bio" defaultValue={user.bio ?? ""} placeholder="Bio" className="min-h-24 border border-line bg-paper px-3 py-3" />
-        <Button type="submit" disabled={saveBusy}>{saveBusy ? "Saving..." : "Save profile"}</Button>
+        <label className="block font-sans text-sm font-bold">
+          Name
+          <input name="name" defaultValue={user.name} className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+        </label>
+        <label className="block font-sans text-sm font-bold">
+          Username
+          <input name="username" defaultValue={user.username} className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+        </label>
+        <label className="block font-sans text-sm font-bold">
+          Email
+          <input name="email" type="email" defaultValue={user.email} className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+        </label>
+        <label className="block font-sans text-sm font-bold">
+          Faculty
+          <input name="faculty" defaultValue={user.faculty ?? ""} placeholder="Faculty" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+        </label>
+        <label className="block font-sans text-sm font-bold">
+          Bio
+          <textarea name="bio" defaultValue={user.bio ?? ""} placeholder="Bio" className="mt-1 min-h-24 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+        </label>
+        <Button type="submit" disabled={saveBusy} className="w-full sm:w-auto">{saveBusy ? "Saving..." : "Save profile"}</Button>
       </form>
 
       <section className="mt-12">

@@ -50,12 +50,26 @@ export function ProfileForm() {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <input {...form.register("name")} placeholder="Name" className="w-full border border-line bg-paper px-3 py-3" />
-      <input {...form.register("faculty")} placeholder="Faculty" className="w-full border border-line bg-paper px-3 py-3" />
-      <input {...form.register("avatar_url")} placeholder="Avatar URL" className="w-full border border-line bg-paper px-3 py-3" />
-      <textarea {...form.register("bio")} placeholder="Bio" className="min-h-32 w-full border border-line bg-paper px-3 py-3" />
-      {message ? <p className="text-sm text-muted">{message}</p> : null}
-      <Button type="submit" disabled={form.formState.isSubmitting}>Save profile</Button>
+      <label className="block font-sans text-sm font-bold">
+        Full name
+        <input {...form.register("name")} placeholder="Your name" className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+      </label>
+      <label className="block font-sans text-sm font-bold">
+        Faculty / Speciality
+        <input {...form.register("faculty")} placeholder="e.g. Computer Science, Oil & Gas, etc." className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+      </label>
+      <label className="block font-sans text-sm font-bold">
+        Avatar URL (optional)
+        <input {...form.register("avatar_url")} placeholder="https://..." className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+      </label>
+      <label className="block font-sans text-sm font-bold">
+        Bio
+        <textarea {...form.register("bio")} placeholder="Write a short summary about yourself..." className="mt-1 min-h-32 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
+      </label>
+      {message ? <p className="text-sm font-bold text-accent">{message}</p> : null}
+      <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
+        {form.formState.isSubmitting ? "Saving..." : "Save profile"}
+      </Button>
     </form>
   );
 }

@@ -48,12 +48,12 @@ export default function AdminOverviewPage() {
   ] as const;
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-      <div className="grid gap-px border border-line bg-line md:grid-cols-5">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:py-12 md:px-8">
+      <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-3 md:grid-cols-5">
         {counts.map(([label, value]) => (
-          <div key={label} className="bg-paper px-4 py-5">
+          <div key={label} className="bg-paper px-4 py-4 sm:py-5">
             <div className="text-xs uppercase tracking-[0.16em] text-muted">{label}</div>
-            <div className="mt-2 font-accent text-4xl">{value}</div>
+            <div className="mt-1 sm:mt-2 font-accent text-3xl sm:text-4xl text-ink">{value}</div>
           </div>
         ))}
       </div>

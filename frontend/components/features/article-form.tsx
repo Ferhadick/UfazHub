@@ -32,6 +32,7 @@ type ArticleFormProps = {
 
 export function ArticleForm({ initial, submitLabel = "Publish note", onSave }: ArticleFormProps) {
   const [preview, setPreview] = useState(initial?.content ?? "");
+  const [tab, setTab] = useState<"write" | "preview">("write");
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { status: "published", tags: "", ...initial }
@@ -61,31 +62,90 @@ export function ArticleForm({ initial, submitLabel = "Publish note", onSave }: A
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-2">
-      <div className="space-y-4">
-        <input {...form.register("title")} placeholder="Title" className="w-full border border-line bg-paper px-3 py-3" />
-        <textarea {...form.register("excerpt")} placeholder="Excerpt" className="min-h-24 w-full border border-line bg-paper px-3 py-3" />
-        <textarea
-          {...form.register("content")}
-          onChange={(event) => {
-            form.setValue("content", event.target.value);
-            setPreview(event.target.value);
-          }}
-          placeholder="Markdown content"
-          className="min-h-72 w-full border border-line bg-paper px-3 py-3"
-        />
-        <input {...form.register("tags")} placeholder="Tags, comma separated" className="w-full border border-line bg-paper px-3 py-3" />
-        <select {...form.register("status")} className="w-full border border-line bg-paper px-3 py-3">
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-        </select>
-        {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
-        <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting ? "Saving..." : submitLabel}</Button>
+    <div>
+      <div className="mb-4 flex gap-2 md:hidden">
+        <button
+          type="button"
+          onClick={() => setTab("write")}
+          className={`flex-1 border py-2 font-sans text-xs font-bold uppercase tracking-wider ${
+            tab === "write" ? "border-accent bg-accent text-paper" : "border-line bg-paper text-muted"
+          }`}
+        >
+          Write
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("preview")}
+          className={`flex-1 border py-2 font-sans text-xs font-bold uppercase tracking-wider ${
+            tab === "preview" ? "border-accent bg-accent text-paper" : "border-line bg-paper text-muted"
+          }`}
+        >
+          Preview
+        </button>
       </div>
-      <div className="border border-line p-4">
-        <div className="mb-4 text-xs uppercase tracking-[0.16em] text-muted">Preview</div>
-        <div className="whitespace-pre-wrap leading-7">{preview || "Your note preview will appear here."}</div>
-      </div>
-    </form>
+
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-2">
+        <div className={`space-y-4 ${tab === "preview" ? "hidden md:block" : "block"}`}>
+          <label className="block font-sans text-sm font-bold">
+            Title
+            <input
+              {...form.register("title")}
+              placeholder="Title of your field note"
+              className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+            />
+          </label>
+          <label className="block font-sans text-sm font-bold">
+            Excerpt
+            <textarea
+              {...form.register("excerpt")}
+              placeholder="A brief summary for cards and lists"
+              className="mt-1 min-h-24 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+            />
+          </label>
+          <label className="block font-sans text-sm font-bold">
+            Markdown content
+            <textarea
+              {...form.register("content")}
+              onChange={(event) => {
+                form.setValue("content", event.target.value);
+                setPreview(event.target.value);
+              }}
+              placeholder="Write your note in Markdown..."
+              className="mt-1 min-h-72 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block font-sans text-sm font-bold">
+              Tags
+              <input
+                {...form.register("tags")}
+                placeholder="Python, Math, Exam"
+                className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+              />
+            </label>
+            <label className="block font-sans text-sm font-bold">
+              Status
+              <select
+                {...form.register("status")}
+                className="mt-1 w-full border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none"
+              >
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+          </div>
+          {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
+          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
+            {form.formState.isSubmitting ? "Saving..." : submitLabel}
+          </Button>
+        </div>
+        <div className={`border border-line p-4 ${tab === "write" ? "hidden md:block" : "block"}`}>
+          <div className="mb-4 text-xs uppercase tracking-[0.16em] text-muted">Preview</div>
+          <div className="whitespace-pre-wrap font-sans text-sm leading-7 text-ink break-words sm:text-base">
+            {preview || "Your note preview will appear here."}
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
