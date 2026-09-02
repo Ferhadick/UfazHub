@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useEffect, useState } from "react";
+import { LogOut, ShieldAlert } from "lucide-react";
 import { getMe, logoutUser } from "@/lib/api";
 import { clearAuthSession, getStoredUser, saveAuthSession, tokenKey } from "@/lib/auth-storage";
 
@@ -45,11 +46,17 @@ export function AuthNav() {
 
   if (!isLoggedIn) {
     return (
-      <div className="flex shrink-0 flex-wrap items-center gap-3 sm:gap-4">
-        <Link href="/login" className="font-sans transition-colors hover:text-clay">
+      <div className="flex shrink-0 items-center gap-2">
+        <Link
+          href="/login"
+          className="border border-transparent px-3 py-1.5 font-sans text-xs font-medium uppercase tracking-[0.14em] text-paper/90 transition-colors hover:text-clay"
+        >
           Log in
         </Link>
-        <Link href="/register" className="border border-line px-3 py-2 font-sans font-bold transition-colors hover:border-clay hover:bg-clay hover:text-accent">
+        <Link
+          href="/register"
+          className="border border-clay/80 bg-clay/10 px-3.5 py-1.5 font-sans text-xs font-bold uppercase tracking-[0.14em] text-clay transition-all hover:bg-clay hover:text-accent"
+        >
           Sign up
         </Link>
       </div>
@@ -62,14 +69,23 @@ export function AuthNav() {
     : "U";
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-3 sm:gap-4">
+    <div className="flex shrink-0 items-center gap-2.5">
       {isAdmin ? (
-        <Link href={"/admin" as Route} className="font-sans text-xs uppercase tracking-wider text-clay hover:underline">
-          Admin Panel
+        <Link
+          href={"/admin" as Route}
+          className="inline-flex items-center gap-1.5 border border-clay/50 bg-clay/15 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-clay transition-all hover:bg-clay hover:text-accent"
+        >
+          <ShieldAlert className="h-3 w-3 text-clay" />
+          <span>Admin</span>
         </Link>
       ) : null}
-      <Link href={profileHref as Route} className="flex items-center gap-2 font-sans transition-colors hover:text-clay">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden border border-line bg-clay font-accent text-[10px] text-accent">
+
+      {/* User profile capsule */}
+      <Link
+        href={profileHref as Route}
+        className="group inline-flex items-center gap-2 border border-line/60 bg-accent/40 px-2.5 py-1 transition-all hover:border-clay hover:bg-accent/80"
+      >
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden border border-clay/60 bg-clay font-accent text-[9px] text-accent">
           {user?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -77,10 +93,20 @@ export function AuthNav() {
             initials
           )}
         </span>
-        <span>{user?.name?.split(" ")[0] ?? "Profile"}</span>
+        <span className="font-sans text-xs font-bold tracking-wide text-paper transition-colors group-hover:text-clay">
+          {user?.name?.split(" ")[0] ?? "Profile"}
+        </span>
       </Link>
-      <button type="button" onClick={logout} className="font-sans text-xs uppercase tracking-wider text-muted transition-colors hover:text-clay">
-        Log out
+
+      {/* Log out button */}
+      <button
+        type="button"
+        onClick={logout}
+        title="Log out"
+        className="inline-flex items-center gap-1 border border-line/40 px-2 py-1.5 font-sans text-xs uppercase tracking-wider text-paper/70 transition-all hover:border-red-400 hover:text-red-300 active:scale-95"
+      >
+        <LogOut className="h-3 w-3 stroke-[2]" />
+        <span className="hidden xl:inline text-[10px]">Exit</span>
       </button>
     </div>
   );

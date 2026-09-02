@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { AuthNav } from "@/components/features/auth-nav";
 import { SubmitLink } from "@/components/features/submit-link";
-
-const issue = new Date().toISOString().slice(0, 7).replace("-", "");
 
 const links = [
   { href: "/resources", label: "Explore" },
@@ -38,48 +37,78 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-accent text-paper shadow-[0_1px_0_rgb(255_242_0_/_0.35)] pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-5 md:px-8">
-        <Link href="/" className="group flex min-w-0 items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 rotate-[-7deg] items-center justify-center border-4 border-clay font-accent text-lg text-clay transition-transform duration-200 group-hover:rotate-0">
-            U
-          </span>
-          <span className="min-w-0">
-            <span className="block font-accent text-base uppercase leading-none">UFAZ</span>
-            <span className="mt-0.5 hidden text-[10px] uppercase tracking-[0.18em] sm:block">Knowledge Platform</span>
-            <span className="mt-0 hidden text-[8px] tracking-[0.12em] text-clay/80 sm:block">By Data Science Club</span>
-          </span>
-        </Link>
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
+        {/* Brand */}
+        <div className="flex items-center gap-6">
+          <Link href="/" className="group flex items-center gap-2.5">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center border-2 border-clay bg-clay/10 font-accent text-sm font-bold text-clay transition-all group-hover:bg-clay group-hover:text-accent">
+              U
+            </span>
+            <div className="flex flex-col">
+              <span className="font-accent text-base uppercase tracking-wider leading-none text-paper group-hover:text-clay transition-colors">
+                UFAZ Hub
+              </span>
+              <span className="hidden sm:block text-[8px] uppercase tracking-[0.2em] text-line/70 leading-tight">
+                Knowledge Platform
+              </span>
+            </div>
+          </Link>
 
-        <div className="hidden shrink-0 items-center gap-3 border-x border-line/70 px-4 lg:flex">
-          <span className="font-accent text-2xl leading-none text-clay">01</span>
-          <span className="text-[9px] uppercase leading-3 tracking-[0.16em] text-line">
-            Vol. 01
-            <br />
-            {issue.slice(0, 4)}
-          </span>
+          {/* Desktop Nav Links */}
+          <nav className="hidden items-center gap-1 md:flex">
+            {links.map((link) => {
+              const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative px-3.5 py-1 font-sans text-xs uppercase tracking-[0.16em] transition-colors ${
+                    active ? "font-bold text-clay" : "text-paper/80 hover:text-paper hover:bg-white/5"
+                  }`}
+                >
+                  {link.label}
+                  {active && (
+                    <span className="absolute -bottom-2.5 left-2 right-2 h-0.5 bg-clay" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        <nav className="ml-auto hidden min-w-0 items-center justify-end gap-4 text-sm lg:flex lg:gap-5">
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className="shrink-0 font-sans transition-colors hover:text-clay">
-              {link.label}
-            </Link>
-          ))}
-          <AuthNav />
-          <SubmitLink />
-        </nav>
-
-        <div className="ml-auto flex items-center gap-2 lg:hidden">
+        {/* Right Action Bar */}
+        <div className="hidden items-center gap-3 md:flex">
+          {/* Quick search button */}
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event("ufaz-open-search"))}
-            className="border border-line px-3 py-2 font-sans text-xs uppercase tracking-[0.12em] transition-colors active:bg-clay active:text-accent hover:border-clay hover:bg-clay hover:text-accent"
+            className="flex items-center gap-2 border border-line/60 bg-accent/40 px-2.5 py-1 text-xs text-paper/70 transition-all hover:border-clay hover:text-paper"
+            title="Search Archive (Cmd/Ctrl + K)"
           >
-            Search
+            <Search className="h-3.5 w-3.5 text-clay" />
+            <span className="font-sans text-[11px] uppercase tracking-wider">Search</span>
+            <kbd className="border border-line/50 bg-accent/80 px-1 py-0.2 font-mono text-[9px] text-paper/60">⌘K</kbd>
+          </button>
+
+          <div className="h-4 w-px bg-line/50" />
+
+          <AuthNav />
+          <SubmitLink />
+        </div>
+
+        {/* Mobile menu & search buttons */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("ufaz-open-search"))}
+            className="flex h-8 w-8 items-center justify-center border border-line text-paper hover:border-clay hover:text-clay"
+            aria-label="Search"
+          >
+            <Search className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
-            className="border border-line px-3 py-2 font-accent text-sm uppercase tracking-[0.08em] transition-colors active:bg-clay active:text-accent hover:border-clay hover:bg-clay hover:text-accent"
+            className="border border-line px-3 py-1.5 font-sans text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:border-clay hover:bg-clay hover:text-accent"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((value) => !value)}
@@ -89,9 +118,10 @@ export function SiteHeader() {
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       {open ? (
-        <div id="mobile-nav" className="border-t border-line bg-accent lg:hidden animate-rise">
-          <nav className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] font-sans text-lg">
+        <div id="mobile-nav" className="border-t border-line bg-accent md:hidden animate-rise">
+          <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] font-sans text-base">
             {links.map((link) => {
               const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
@@ -99,19 +129,19 @@ export function SiteHeader() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center justify-between border-b border-line/40 py-3.5 transition-colors ${
+                  className={`flex items-center justify-between border-b border-line/30 py-3 transition-colors ${
                     active ? "text-clay font-bold" : "text-paper hover:text-clay"
                   }`}
                 >
-                  <span>{link.label}</span>
+                  <span className="text-sm uppercase tracking-wider">{link.label}</span>
                   <span className="text-xs text-line">↗</span>
                 </Link>
               );
             })}
-            <div className="flex flex-wrap items-center gap-4 border-b border-line/40 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line/30 py-3">
               <AuthNav />
             </div>
-            <div className="pt-2">
+            <div className="pt-3">
               <SubmitLink />
             </div>
           </nav>
