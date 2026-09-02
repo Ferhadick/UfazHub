@@ -18,12 +18,22 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function CollectionForm() {
+type CollectionFormProps = {
+  initial?: Partial<FormValues> & { resources?: ResourceRead[] };
+  submitLabel?: string;
+  onSave?: (payload: { title: string; description: string; resource_ids: string[]; tags: string[] }) => Promise<void>;
+};
+
+export function CollectionForm({ initial, submitLabel = "Create collection", onSave }: CollectionFormProps) {
+  const { resources: initialResources, ...formInitial } = initial ?? {};
   const [resources, setResources] = useState<ResourceRead[]>([]);
-  const [selectedResources, setSelectedResources] = useState<ResourceRead[]>([]);
+  const [selectedResources, setSelectedResources] = useState<ResourceRead[]>(initialResources ?? []);
   const [query, setQuery] = useState("");
   const [resourceState, setResourceState] = useState<"loading" | "ready" | "error">("loading");
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { tags: "" } });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { tags: "", ...formInitial }
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -98,12 +108,17 @@ export function CollectionForm() {
       return;
     }
 
-    await createCollection(token, {
+    const payload = {
       title: values.title,
       description: values.description,
       resource_ids: selectedResources.map((resource) => resource.id),
       tags: values.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
-    });
+    };
+    if (onSave) {
+      await onSave(payload);
+      return;
+    }
+    await createCollection(token, payload);
     setSelectedResources([]);
     form.reset({ tags: "" });
   }
@@ -166,7 +181,7 @@ export function CollectionForm() {
         <input {...form.register("tags")} placeholder="Tags, comma separated" className="w-full border border-line bg-paper px-3 py-3 transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
         {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Creating..." : "Create collection"}
+          {form.formState.isSubmitting ? "Saving..." : submitLabel}
         </Button>
       </div>
 

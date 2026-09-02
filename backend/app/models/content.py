@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Table, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Table, Text, UniqueConstraint, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -49,10 +49,15 @@ class Resource(Base):
     student_note: Mapped[str | None] = mapped_column(Text)
     upvotes: Mapped[int] = mapped_column(Integer, default=0)
     downvotes: Mapped[int] = mapped_column(Integer, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), index=True)
+    hidden_reason: Mapped[str | None] = mapped_column(Text)
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    hidden_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    author = relationship("User", back_populates="resources")
+    author = relationship("User", back_populates="resources", foreign_keys=[author_id])
+    hidden_by = relationship("User", foreign_keys=[hidden_by_id])
     tags = relationship("Tag", secondary=resource_tags, lazy="selectin")
 
 
@@ -70,11 +75,16 @@ class Article(Base):
     status: Mapped[ArticleStatus] = mapped_column(Enum(ArticleStatus, name="article_status"))
     upvotes: Mapped[int] = mapped_column(Integer, default=0)
     downvotes: Mapped[int] = mapped_column(Integer, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), index=True)
+    hidden_reason: Mapped[str | None] = mapped_column(Text)
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    hidden_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
-    author = relationship("User", back_populates="articles")
+    author = relationship("User", back_populates="articles", foreign_keys=[author_id])
+    hidden_by = relationship("User", foreign_keys=[hidden_by_id])
     tags = relationship("Tag", secondary=article_tags, lazy="selectin")
 
 
@@ -87,10 +97,15 @@ class Collection(Base):
     description: Mapped[str] = mapped_column(Text)
     upvotes: Mapped[int] = mapped_column(Integer, default=0)
     downvotes: Mapped[int] = mapped_column(Integer, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), index=True)
+    hidden_reason: Mapped[str | None] = mapped_column(Text)
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    hidden_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    author = relationship("User", back_populates="collections")
+    author = relationship("User", back_populates="collections", foreign_keys=[author_id])
+    hidden_by = relationship("User", foreign_keys=[hidden_by_id])
     tags = relationship("Tag", secondary=collection_tags, lazy="selectin")
     items = relationship("CollectionItem", back_populates="collection", cascade="all, delete-orphan", order_by="CollectionItem.position", lazy="selectin")
 

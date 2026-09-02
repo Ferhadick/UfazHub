@@ -15,6 +15,9 @@ UFAZ Hub is a student-built archive for resources, notes, course material, and p
 - Voting and blocked guest action tracking
 - Public leaderboard and profile pages
 - Next.js App Router frontend with an archival homepage and API-backed discovery pages
+- Admin moderation panel at `/admin` for users, content, and action events
+- Roles `user` and `admin`, plus mute / ban / warning states
+- Hidden content excluded from public list, feed, search, and show
 
 ## Setup
 
@@ -31,7 +34,15 @@ docker compose up --build
 docker compose exec backend uv run python scripts_seed.py
 ```
 
+Promote an operator, or bootstrap via `ADMIN_EMAILS` (comma-separated) so matching addresses become admins on register/login:
+
+```bash
+docker compose exec backend uv run python scripts_promote_admin.py leyla.mammadova@ufaz.az
+```
+
 Frontend: `http://localhost:3000`
+
+Admin desk: `http://localhost:3000/admin`
 
 Backend OpenAPI: `http://localhost:8000/docs`
 
@@ -56,7 +67,7 @@ uv run pytest
 
 ## Deployment Notes
 
-The app is intentionally host-portable. For AWS, the clean path is PostgreSQL on RDS, backend on ECS/Fargate or App Runner, and frontend on Amplify, Vercel, or a container service. Required runtime configuration is environment-variable based: `DATABASE_URL`, `JWT_SECRET`, `IP_HASH_SALT`, `FRONTEND_URL`, `NEXT_PUBLIC_API_BASE_URL`, and `API_INTERNAL_BASE_URL`. Keep `COOKIE_SECURE=true` behind HTTPS.
+The app is intentionally host-portable. For AWS, the clean path is PostgreSQL on RDS, backend on ECS/Fargate or App Runner, and frontend on Amplify, Vercel, or a container service. Required runtime configuration is environment-variable based: `DATABASE_URL`, `JWT_SECRET`, `IP_HASH_SALT`, `FRONTEND_URL`, `NEXT_PUBLIC_API_BASE_URL`, `API_INTERNAL_BASE_URL`, and `ADMIN_EMAILS`. Keep `COOKIE_SECURE=true` behind HTTPS.
 
 Before a public launch, add managed secrets, HTTPS-only cookies, a real domain in CORS, database backups, and API rate limiting at the edge or gateway. The application code does not assume AWS-specific services, so the same containers can move to another provider.
 

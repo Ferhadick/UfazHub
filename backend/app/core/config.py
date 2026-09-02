@@ -16,10 +16,15 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     ip_hash_salt: str = Field(default="local-dev-salt", min_length=8)
     frontend_url: AnyHttpUrl | str = "http://localhost:3000"
+    admin_emails: str = ""
 
     @property
     def cors_origins(self) -> list[str]:
         return [str(self.frontend_url), "http://127.0.0.1:3000"]
+
+    @property
+    def bootstrap_admin_emails(self) -> set[str]:
+        return {email.strip().lower() for email in self.admin_emails.split(",") if email.strip()}
 
 
 @lru_cache

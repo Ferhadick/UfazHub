@@ -27,6 +27,26 @@ class ActorType(str, enum.Enum):
     user = "user"
 
 
+class UserRole(str, enum.Enum):
+    user = "user"
+    admin = "admin"
+
+
+class UserStatus(str, enum.Enum):
+    active = "active"
+    muted = "muted"
+    banned = "banned"
+
+
+class ModerationEventType(str, enum.Enum):
+    warning = "warning"
+    mute = "mute"
+    unmute = "unmute"
+    ban = "ban"
+    unban = "unban"
+    role_change = "role_change"
+
+
 class ActionEventType(str, enum.Enum):
     view_resource = "view_resource"
     view_article = "view_article"
@@ -42,4 +62,13 @@ class ActionEventType(str, enum.Enum):
     signup_started = "signup_started"
     signup_completed = "signup_completed"
     login = "login"
-
+    admin_hide = "admin_hide"
+    admin_unhide = "admin_unhide"
+    admin_delete = "admin_delete"
+    admin_user_edit = "admin_user_edit"
+    admin_role_change = "admin_role_change"
+    admin_warn = "admin_warn"
+    admin_mute = "admin_mute"
+    admin_unmute = "admin_unmute"
+    admin_ban = "admin_ban"
+    admin_unban = "admin_unban"

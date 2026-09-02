@@ -1,6 +1,9 @@
 export type ResourceType = "course" | "article" | "video" | "docs" | "github_repo" | "website" | "book";
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
+export type UserRole = "user" | "admin";
+export type UserStatus = "active" | "muted" | "banned";
+
 export type UserPublic = {
   id: string;
   email: string;
@@ -10,6 +13,10 @@ export type UserPublic = {
   faculty: string | null;
   avatar_url: string | null;
   reputation_score: number;
+  role: UserRole;
+  status: UserStatus;
+  muted_until: string | null;
+  warning_count: number;
   created_at: string;
 };
 
@@ -97,4 +104,88 @@ export type TokenResponse = {
   access_token: string;
   token_type: "bearer";
   user: UserPublic;
+};
+
+export type ContentKind = "resource" | "article" | "collection";
+
+export type ModerationEventRead = {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  event_type: string;
+  reason: string;
+  duration_minutes: number | null;
+  expires_at: string | null;
+  created_at: string;
+  actor_username: string | null;
+};
+
+export type AdminActionEventRead = {
+  id: string;
+  actor_type: "guest" | "user";
+  event_type: string;
+  user_id: string | null;
+  username: string | null;
+  guest_session_id: string | null;
+  ip_hash: string | null;
+  target_type: string | null;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type ContentCounts = {
+  resources: number;
+  articles: number;
+  collections: number;
+};
+
+export type AdminOverview = {
+  users_total: number;
+  users_active: number;
+  users_muted: number;
+  users_banned: number;
+  admins: number;
+  content_counts: ContentCounts;
+  hidden_counts: ContentCounts;
+  events_last_7_days: Record<string, number>;
+  recent_moderation_events: ModerationEventRead[];
+  recent_blocked_guest_actions: AdminActionEventRead[];
+};
+
+export type AdminUserDetail = {
+  user: UserPublic;
+  moderation_history: ModerationEventRead[];
+  content_counts: ContentCounts;
+  recent_action_events: AdminActionEventRead[];
+};
+
+export type AdminContentItem = {
+  kind: ContentKind;
+  id: string;
+  title: string;
+  slug: string | null;
+  is_hidden: boolean;
+  hidden_reason: string | null;
+  author_id: string;
+  author_username: string;
+  created_at: string;
+};
+
+export type AdminResourceRead = ResourceRead & {
+  is_hidden: boolean;
+  hidden_reason: string | null;
+  hidden_at: string | null;
+};
+
+export type AdminArticleRead = ArticleRead & {
+  is_hidden: boolean;
+  hidden_reason: string | null;
+  hidden_at: string | null;
+};
+
+export type AdminCollectionRead = CollectionRead & {
+  is_hidden: boolean;
+  hidden_reason: string | null;
+  hidden_at: string | null;
 };

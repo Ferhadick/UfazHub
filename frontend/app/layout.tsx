@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AuthNav } from "@/components/features/auth-nav";
 import { CommandPalette } from "@/components/features/command-palette";
 import { GuestBanner } from "@/components/features/guest-banner";
+import { ModerationBanner } from "@/components/features/moderation-banner";
+import { SubmitLink } from "@/components/features/submit-link";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="paper-grain min-h-screen bg-paper text-ink">
         <CommandPalette />
         <GuestBanner />
+        <ModerationBanner />
         <header className="sticky top-0 z-30 border-b border-line bg-accent text-paper shadow-[0_1px_0_rgb(255_242_0_/_0.35)]">
           <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 py-3 md:px-8">
             <Link href="/" className="group flex min-w-0 items-center gap-3">
@@ -38,9 +41,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="/collections" className="shrink-0 font-sans transition-colors hover:text-clay">Collections</Link>
               <Link href="/people" className="shrink-0 font-sans transition-colors hover:text-clay">People</Link>
               <AuthNav />
-              <Link href="/resources/new" className="shrink-0 border border-line px-3 py-2 font-sans font-bold transition-colors hover:border-clay hover:bg-clay hover:text-accent sm:px-4">
-                + Submit
-              </Link>
+              <SubmitLink />
             </nav>
           </div>
         </header>

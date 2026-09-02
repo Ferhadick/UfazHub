@@ -43,6 +43,9 @@ class ArticleRead(BaseModel):
     status: ArticleStatus
     upvotes: int
     downvotes: int
+    is_hidden: bool = False
+    hidden_reason: str | None = None
+    hidden_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     published_at: datetime | None

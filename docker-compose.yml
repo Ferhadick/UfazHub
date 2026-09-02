@@ -20,6 +20,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://ufaz:ufaz@postgres:5432/ufaz_hub}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       UV_LINK_MODE: copy
     ports:
       - "8000:8000"

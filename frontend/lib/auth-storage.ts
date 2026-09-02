@@ -26,3 +26,11 @@ export function getStoredUser(): UserPublic | null {
     return null;
   }
 }
+
+export function getStoredToken(): string | null {
+  return window.localStorage.getItem(tokenKey);
+}
+
+export function isWriteBlocked(user: UserPublic | null): boolean {
+  return user?.status === "muted" || user?.status === "banned";
+}

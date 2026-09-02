@@ -1,4 +1,5 @@
 import { ArticleForm } from "@/components/features/article-form";
+import { WriteBlockedNotice } from "@/components/features/write-blocked-notice";
 
 export default function NewArticlePage() {
   return (
@@ -7,7 +8,9 @@ export default function NewArticlePage() {
         <div className="text-xs uppercase tracking-[0.18em] text-muted">Submit / Article</div>
         <h1 className="mt-2 font-accent text-5xl">Write a field note.</h1>
       </div>
-      <ArticleForm />
+      <WriteBlockedNotice>
+        <ArticleForm />
+      </WriteBlockedNotice>
     </main>
   );
 }

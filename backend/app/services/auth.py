@@ -6,9 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.errors import ApiError
 from app.core.security import create_token, decode_token, hash_password, verify_password
-from app.models import ActionEventType, GuestSession, User
+from app.models import ActionEventType, GuestSession, User, UserRole
 from app.schemas.user import LoginRequest, TokenResponse, UserCreate
 from app.services.events import convert_guest_history, log_action
+from app.services.access import assert_not_banned, expire_mute_if_needed
+
+
+def _maybe_bootstrap_admin(user: User) -> None:
+    if user.email.lower() in settings.bootstrap_admin_emails:
+        user.role = UserRole.admin
 
 
 async def register_user(session: AsyncSession, payload: UserCreate, guest: GuestSession | None) -> TokenResponse:
@@ -22,6 +28,7 @@ async def register_user(session: AsyncSession, payload: UserCreate, guest: Guest
         name=payload.name,
         faculty=payload.faculty,
     )
+    _maybe_bootstrap_admin(user)
     session.add(user)
     await session.flush()
     await convert_guest_history(session, guest, user)
@@ -35,6 +42,9 @@ async def login_user(session: AsyncSession, payload: LoginRequest, guest: GuestS
     user = await session.scalar(select(User).where(User.email == str(payload.email).lower()))
     if user is None or not verify_password(payload.password, user.password_hash):
         raise ApiError(401, "INVALID_CREDENTIALS", "The email or password is incorrect.")
+    assert_not_banned(user)
+    await expire_mute_if_needed(session, user)
+    _maybe_bootstrap_admin(user)
     await convert_guest_history(session, guest, user)
     await log_action(session, ActionEventType.login, user=user, guest=guest)
     await session.commit()
@@ -58,4 +68,6 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str | None)
     user = await session.get(User, user_id)
     if user is None:
         raise ApiError(401, "USER_NOT_FOUND", "The authenticated user no longer exists.")
+    assert_not_banned(user)
+    await expire_mute_if_needed(session, user)
     return _token_response(user)

@@ -25,10 +25,37 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function ResourceForm() {
+type ResourceFormProps = {
+  initial?: Partial<FormValues>;
+  submitLabel?: string;
+  onSave?: (payload: {
+    title: string;
+    description: string;
+    url: string;
+    type: string;
+    category: string;
+    difficulty: string;
+    use_case?: string;
+    time_commitment?: string;
+    prerequisites?: string;
+    best_part?: string;
+    warning?: string;
+    student_note?: string;
+    tags: string[];
+  }) => Promise<void>;
+};
+
+export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: ResourceFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { type: "course", difficulty: "beginner", use_case: "First time learning", time_commitment: "30 min", tags: "" }
+    defaultValues: {
+      type: "course",
+      difficulty: "beginner",
+      use_case: "First time learning",
+      time_commitment: "30 min",
+      tags: "",
+      ...initial
+    }
   });
 
   function optional(value: string | undefined) {
@@ -43,7 +70,7 @@ export function ResourceForm() {
       return;
     }
 
-    await createResource(token, {
+    const payload = {
       title: values.title,
       description: values.description,
       url: values.url,
@@ -57,7 +84,12 @@ export function ResourceForm() {
       warning: optional(values.warning),
       student_note: optional(values.student_note),
       tags: values.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
-    });
+    };
+    if (onSave) {
+      await onSave(payload);
+      return;
+    }
+    await createResource(token, payload);
     form.reset({ type: "course", difficulty: "beginner", use_case: "First time learning", time_commitment: "30 min", tags: "" });
   }
 
@@ -148,7 +180,7 @@ export function ResourceForm() {
 
         {form.formState.errors.root ? <p className="text-sm text-accent">{form.formState.errors.root.message}</p> : null}
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting..." : "Submit entry"}
+          {form.formState.isSubmitting ? "Saving..." : submitLabel}
         </Button>
       </div>
 

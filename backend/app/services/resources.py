@@ -7,11 +7,13 @@ from sqlalchemy.orm import selectinload
 from app.core.errors import ApiError
 from app.models import ActionEventType, Resource, User, Vote
 from app.schemas.resource import ResourceCreate, ResourceUpdate
+from app.services.access import assert_author_or_admin, assert_user_can_write
 from app.services.events import log_action
 from app.services.tags import resolve_tags
 
 
 async def create_resource(session: AsyncSession, payload: ResourceCreate, user: User) -> Resource:
+    await assert_user_can_write(session, user)
     resource = Resource(
         author_id=user.id,
         title=payload.title,
@@ -36,9 +38,18 @@ async def create_resource(session: AsyncSession, payload: ResourceCreate, user: 
     return await get_resource(session, resource.id)
 
 
-async def list_resources(session: AsyncSession, limit: int, offset: int, resource_type: str | None = None) -> tuple[list[Resource], int]:
+async def list_resources(
+    session: AsyncSession,
+    limit: int,
+    offset: int,
+    resource_type: str | None = None,
+    include_hidden: bool = False,
+) -> tuple[list[Resource], int]:
     stmt = select(Resource).options(selectinload(Resource.author), selectinload(Resource.tags))
     count_stmt = select(func.count()).select_from(Resource)
+    if not include_hidden:
+        stmt = stmt.where(Resource.is_hidden.is_(False))
+        count_stmt = count_stmt.where(Resource.is_hidden.is_(False))
     if resource_type:
         stmt = stmt.where(Resource.type == resource_type)
         count_stmt = count_stmt.where(Resource.type == resource_type)
@@ -46,21 +57,23 @@ async def list_resources(session: AsyncSession, limit: int, offset: int, resourc
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 
 
-async def get_resource(session: AsyncSession, resource_id: UUID) -> Resource:
-    resource = await session.scalar(
-        select(Resource)
-        .where(Resource.id == resource_id)
-        .options(selectinload(Resource.author), selectinload(Resource.tags))
-    )
+async def get_resource(session: AsyncSession, resource_id: UUID, include_hidden: bool = False) -> Resource:
+    stmt = select(Resource).where(Resource.id == resource_id).options(selectinload(Resource.author), selectinload(Resource.tags))
+    if not include_hidden:
+        stmt = stmt.where(Resource.is_hidden.is_(False))
+    resource = await session.scalar(stmt)
     if resource is None:
         raise ApiError(404, "RESOURCE_NOT_FOUND", "Resource was not found.")
     return resource
 
 
-async def update_resource(session: AsyncSession, resource_id: UUID, payload: ResourceUpdate, user: User) -> Resource:
-    resource = await get_resource(session, resource_id)
-    if resource.author_id != user.id:
-        raise ApiError(403, "FORBIDDEN", "Only the author can edit this resource.")
+async def update_resource(
+    session: AsyncSession, resource_id: UUID, payload: ResourceUpdate, user: User, *, enforce_write_guard: bool = True
+) -> Resource:
+    if enforce_write_guard:
+        await assert_user_can_write(session, user)
+    resource = await get_resource(session, resource_id, include_hidden=True)
+    assert_author_or_admin(resource.author_id, user, "edit this resource")
     data = payload.model_dump(exclude_unset=True)
     tag_names = data.pop("tags", None)
     if "url" in data and data["url"] is not None:
@@ -70,18 +83,19 @@ async def update_resource(session: AsyncSession, resource_id: UUID, payload: Res
     if tag_names is not None:
         resource.tags = await resolve_tags(session, tag_names)
     await session.commit()
-    return await get_resource(session, resource_id)
+    return await get_resource(session, resource_id, include_hidden=True)
 
 
 async def delete_resource(session: AsyncSession, resource_id: UUID, user: User) -> None:
-    resource = await get_resource(session, resource_id)
-    if resource.author_id != user.id:
-        raise ApiError(403, "FORBIDDEN", "Only the author can delete this resource.")
+    await assert_user_can_write(session, user)
+    resource = await get_resource(session, resource_id, include_hidden=True)
+    assert_author_or_admin(resource.author_id, user, "delete this resource")
     await session.delete(resource)
     await session.commit()
 
 
 async def vote_resource(session: AsyncSession, resource_id: UUID, value: int, user: User) -> Resource:
+    await assert_user_can_write(session, user)
     resource = await get_resource(session, resource_id)
     existing = await session.scalar(
         select(Vote).where(Vote.user_id == user.id, Vote.target_type == "resource", Vote.target_id == resource_id)
@@ -114,11 +128,11 @@ async def search_resources(session: AsyncSession, query: str, limit: int, offset
     )
     stmt = (
         select(Resource)
-        .where(or_(*searchable_fields))
+        .where(Resource.is_hidden.is_(False), or_(*searchable_fields))
         .options(selectinload(Resource.author), selectinload(Resource.tags))
         .order_by(Resource.created_at.desc())
         .limit(limit)
         .offset(offset)
     )
-    count_stmt = select(func.count()).select_from(Resource).where(or_(*searchable_fields))
+    count_stmt = select(func.count()).select_from(Resource).where(Resource.is_hidden.is_(False), or_(*searchable_fields))
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)

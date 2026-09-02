@@ -69,6 +69,9 @@ class ResourceRead(BaseModel):
     student_note: str | None
     upvotes: int
     downvotes: int
+    is_hidden: bool = False
+    hidden_reason: str | None = None
+    hidden_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     author: UserPublic

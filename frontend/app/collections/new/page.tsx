@@ -1,4 +1,5 @@
 import { CollectionForm } from "@/components/features/collection-form";
+import { WriteBlockedNotice } from "@/components/features/write-blocked-notice";
 
 export default function NewCollectionPage() {
   return (
@@ -7,7 +8,9 @@ export default function NewCollectionPage() {
         <div className="text-xs uppercase tracking-[0.18em] text-muted">Submit / Collection</div>
         <h1 className="mt-2 font-accent text-5xl">Create a path.</h1>
       </div>
-      <CollectionForm />
+      <WriteBlockedNotice>
+        <CollectionForm />
+      </WriteBlockedNotice>
     </main>
   );
 }

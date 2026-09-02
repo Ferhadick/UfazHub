@@ -2,13 +2,13 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Cookie, Depends, Header, Request
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
 from app.core.security import decode_token
 from app.db.session import get_session
-from app.models import GuestSession, User
+from app.models import GuestSession, User, UserRole, UserStatus
+from app.services.access import assert_not_banned, expire_mute_if_needed
 
 DbSession = Annotated[AsyncSession, Depends(get_session)]
 
@@ -24,6 +24,13 @@ async def get_current_user(
     user = await session.get(User, user_id)
     if user is None:
         raise ApiError(401, "USER_NOT_FOUND", "The authenticated user no longer exists.")
+    assert_not_banned(user)
+    return await expire_mute_if_needed(session, user)
+
+
+async def require_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
+    if user.role != UserRole.admin:
+        raise ApiError(403, "ADMIN_REQUIRED", "Admin access is required.")
     return user
 
 
@@ -51,7 +58,9 @@ async def get_optional_user(
     if not authorization or not authorization.startswith("Bearer "):
         return None
     try:
-        return await session.get(User, decode_token(authorization.removeprefix("Bearer ").strip(), "access"))
+        user = await session.get(User, decode_token(authorization.removeprefix("Bearer ").strip(), "access"))
     except ApiError:
         return None
-
+    if user is None or user.status == UserStatus.banned:
+        return None
+    return await expire_mute_if_needed(session, user)

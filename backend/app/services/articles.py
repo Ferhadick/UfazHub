@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.errors import ApiError
 from app.models import ActionEventType, Article, ArticleStatus, User, Vote
 from app.schemas.article import ArticleCreate, ArticleUpdate
+from app.services.access import assert_author_or_admin, assert_user_can_write
 from app.services.events import log_action
 from app.services.slug import slugify
 from app.services.tags import resolve_tags
@@ -37,6 +39,7 @@ async def _unique_slug(session: AsyncSession, title: str, current_slug: str | No
 
 
 async def create_article(session: AsyncSession, payload: ArticleCreate, user: User) -> Article:
+    await assert_user_can_write(session, user)
     published_at = datetime.now(timezone.utc) if payload.status == ArticleStatus.published else None
     article = Article(
         author_id=user.id,
@@ -59,30 +62,56 @@ async def create_article(session: AsyncSession, payload: ArticleCreate, user: Us
     return await get_article_by_slug(session, article.slug, include_drafts=True)
 
 
-async def list_articles(session: AsyncSession, limit: int, offset: int, include_drafts: bool = False) -> tuple[list[Article], int]:
+async def list_articles(
+    session: AsyncSession,
+    limit: int,
+    offset: int,
+    include_drafts: bool = False,
+    include_hidden: bool = False,
+) -> tuple[list[Article], int]:
     stmt = select(Article).options(selectinload(Article.author), selectinload(Article.tags))
     count_stmt = select(func.count()).select_from(Article)
     if not include_drafts:
         stmt = stmt.where(Article.status == ArticleStatus.published)
         count_stmt = count_stmt.where(Article.status == ArticleStatus.published)
+    if not include_hidden:
+        stmt = stmt.where(Article.is_hidden.is_(False))
+        count_stmt = count_stmt.where(Article.is_hidden.is_(False))
     stmt = stmt.order_by(Article.created_at.desc()).limit(limit).offset(offset)
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 
 
-async def get_article_by_slug(session: AsyncSession, slug: str, include_drafts: bool = False) -> Article:
-    stmt = select(Article).where(Article.slug == slug).options(selectinload(Article.author), selectinload(Article.tags))
+async def get_article_by_id(session: AsyncSession, article_id: UUID, include_hidden: bool = False, include_drafts: bool = False) -> Article:
+    stmt = select(Article).where(Article.id == article_id).options(selectinload(Article.author), selectinload(Article.tags))
     if not include_drafts:
         stmt = stmt.where(Article.status == ArticleStatus.published)
+    if not include_hidden:
+        stmt = stmt.where(Article.is_hidden.is_(False))
     article = await session.scalar(stmt)
     if article is None:
         raise ApiError(404, "ARTICLE_NOT_FOUND", "Article was not found.")
     return article
 
 
-async def update_article(session: AsyncSession, slug: str, payload: ArticleUpdate, user: User) -> Article:
-    article = await get_article_by_slug(session, slug, include_drafts=True)
-    if article.author_id != user.id:
-        raise ApiError(403, "FORBIDDEN", "Only the author can edit this article.")
+async def get_article_by_slug(session: AsyncSession, slug: str, include_drafts: bool = False, include_hidden: bool = False) -> Article:
+    stmt = select(Article).where(Article.slug == slug).options(selectinload(Article.author), selectinload(Article.tags))
+    if not include_drafts:
+        stmt = stmt.where(Article.status == ArticleStatus.published)
+    if not include_hidden:
+        stmt = stmt.where(Article.is_hidden.is_(False))
+    article = await session.scalar(stmt)
+    if article is None:
+        raise ApiError(404, "ARTICLE_NOT_FOUND", "Article was not found.")
+    return article
+
+
+async def update_article(
+    session: AsyncSession, slug: str, payload: ArticleUpdate, user: User, *, enforce_write_guard: bool = True
+) -> Article:
+    if enforce_write_guard:
+        await assert_user_can_write(session, user)
+    article = await get_article_by_slug(session, slug, include_drafts=True, include_hidden=True)
+    assert_author_or_admin(article.author_id, user, "edit this article")
     old_status = article.status
     data = payload.model_dump(exclude_unset=True)
     tag_names = data.pop("tags", None)
@@ -102,10 +131,11 @@ async def update_article(session: AsyncSession, slug: str, payload: ArticleUpdat
     if tag_names is not None:
         article.tags = await resolve_tags(session, tag_names)
     await session.commit()
-    return await get_article_by_slug(session, article.slug, include_drafts=True)
+    return await get_article_by_slug(session, article.slug, include_drafts=True, include_hidden=True)
 
 
 async def vote_article(session: AsyncSession, slug: str, value: int, user: User) -> Article:
+    await assert_user_can_write(session, user)
     article = await get_article_by_slug(session, slug)
     existing = await session.scalar(select(Vote).where(Vote.user_id == user.id, Vote.target_type == "article", Vote.target_id == article.id))
     old_value = existing.value if existing else 0
@@ -126,7 +156,11 @@ async def search_articles(session: AsyncSession, query: str, limit: int) -> list
     pattern = f"%{query.strip()}%"
     stmt = (
         select(Article)
-        .where(Article.status == ArticleStatus.published, or_(Article.title.ilike(pattern), Article.excerpt.ilike(pattern), Article.content.ilike(pattern)))
+        .where(
+            Article.status == ArticleStatus.published,
+            Article.is_hidden.is_(False),
+            or_(Article.title.ilike(pattern), Article.excerpt.ilike(pattern), Article.content.ilike(pattern)),
+        )
         .options(selectinload(Article.author), selectinload(Article.tags))
         .order_by(Article.created_at.desc())
         .limit(limit)

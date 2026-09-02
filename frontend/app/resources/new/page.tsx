@@ -1,4 +1,5 @@
 import { ResourceForm } from "@/components/features/resource-form";
+import { WriteBlockedNotice } from "@/components/features/write-blocked-notice";
 
 export default function NewResourcePage() {
   return (
@@ -7,7 +8,9 @@ export default function NewResourcePage() {
         <div className="text-xs uppercase tracking-[0.18em] text-muted">Submit / Resource</div>
         <h1 className="mt-2 font-accent text-5xl">Leave a useful entry.</h1>
       </div>
-      <ResourceForm />
+      <WriteBlockedNotice>
+        <ResourceForm />
+      </WriteBlockedNotice>
     </main>
   );
 }

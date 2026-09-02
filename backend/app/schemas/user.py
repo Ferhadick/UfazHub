@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.models.enums import UserRole, UserStatus
+
 
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -15,6 +17,10 @@ class UserPublic(BaseModel):
     faculty: str | None
     avatar_url: str | None
     reputation_score: int
+    role: UserRole
+    status: UserStatus
+    muted_until: datetime | None
+    warning_count: int
     created_at: datetime
 
 

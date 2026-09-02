@@ -1,4 +1,23 @@
-import type { ArticleRead, CollectionRead, FeedItem, PaginatedResponse, ResourceRead, TagRead, TokenResponse, UserPublic } from "@/types/api";
+import type {
+  AdminActionEventRead,
+  AdminArticleRead,
+  AdminCollectionRead,
+  AdminContentItem,
+  AdminOverview,
+  AdminResourceRead,
+  AdminUserDetail,
+  ArticleRead,
+  CollectionRead,
+  ContentKind,
+  FeedItem,
+  PaginatedResponse,
+  ResourceRead,
+  TagRead,
+  TokenResponse,
+  UserPublic,
+  UserRole,
+  UserStatus
+} from "@/types/api";
 
 const API_BASE =
   typeof window === "undefined"
@@ -186,4 +205,120 @@ export function createCollection(
 
 export function trackBlockedSubmit(target: "resource" | "article" | "collection"): Promise<void> {
   return request<void>(`/${target}s/blocked-submit`, { method: "POST" });
+}
+
+function queryString(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    search.set(key, String(value));
+  }
+  const encoded = search.toString();
+  return encoded ? `?${encoded}` : "";
+}
+
+export function adminOverview(token: string): Promise<AdminOverview> {
+  return request<AdminOverview>("/admin/overview", { token });
+}
+
+export function adminListUsers(
+  token: string,
+  params: { q?: string; status?: UserStatus | ""; role?: UserRole | ""; limit?: number; offset?: number } = {}
+): Promise<PaginatedResponse<UserPublic>> {
+  return request<PaginatedResponse<UserPublic>>(`/admin/users${queryString(params)}`, { token });
+}
+
+export function adminCreateUser(
+  token: string,
+  payload: { email: string; username: string; password: string; name: string; faculty?: string }
+): Promise<UserPublic> {
+  return request<UserPublic>("/admin/users", { method: "POST", token, body: JSON.stringify(payload) });
+}
+
+export function adminGetUser(token: string, id: string): Promise<AdminUserDetail> {
+  return request<AdminUserDetail>(`/admin/users/${id}`, { token });
+}
+
+export function adminUpdateUser(
+  token: string,
+  id: string,
+  payload: Partial<{ name: string; bio: string; faculty: string; username: string; email: string; role: UserRole; reason: string }>
+): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}`, { method: "PATCH", token, body: JSON.stringify(payload) });
+}
+
+export function adminWarnUser(token: string, id: string, reason: string): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}/warn`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminMuteUser(token: string, id: string, reason: string, duration_minutes: number | null): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}/mute`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({ reason, duration_minutes })
+  });
+}
+
+export function adminUnmuteUser(token: string, id: string, reason: string): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}/unmute`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminBanUser(token: string, id: string, reason: string): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}/ban`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminUnbanUser(token: string, id: string, reason: string): Promise<UserPublic> {
+  return request<UserPublic>(`/admin/users/${id}/unban`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminListContent(
+  token: string,
+  params: { kind: ContentKind; q?: string; hidden?: boolean; author_id?: string; limit?: number; offset?: number }
+): Promise<PaginatedResponse<AdminContentItem>> {
+  return request<PaginatedResponse<AdminContentItem>>(`/admin/content${queryString(params)}`, { token });
+}
+
+export function adminGetContent(
+  token: string,
+  kind: ContentKind,
+  id: string
+): Promise<AdminResourceRead | AdminArticleRead | AdminCollectionRead> {
+  return request(`/admin/content/${kind}/${id}`, { token });
+}
+
+export function adminUpdateContent(
+  token: string,
+  kind: ContentKind,
+  id: string,
+  payload: Record<string, unknown>
+): Promise<AdminResourceRead | AdminArticleRead | AdminCollectionRead> {
+  return request(`/admin/content/${kind}/${id}`, { method: "PATCH", token, body: JSON.stringify(payload) });
+}
+
+export function adminHideContent(token: string, kind: ContentKind, id: string, reason: string) {
+  return request(`/admin/content/${kind}/${id}/hide`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminUnhideContent(token: string, kind: ContentKind, id: string, reason: string) {
+  return request(`/admin/content/${kind}/${id}/unhide`, { method: "POST", token, body: JSON.stringify({ reason }) });
+}
+
+export function adminDeleteContent(token: string, kind: ContentKind, id: string): Promise<void> {
+  return request<void>(`/admin/content/${kind}/${id}`, { method: "DELETE", token });
+}
+
+export function adminListEvents(
+  token: string,
+  params: {
+    event_type?: string;
+    actor_type?: "guest" | "user" | "";
+    user_id?: string;
+    guest_session_id?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<PaginatedResponse<AdminActionEventRead>> {
+  return request<PaginatedResponse<AdminActionEventRead>>(`/admin/events${queryString(params)}`, { token });
 }

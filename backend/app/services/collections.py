@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from app.core.errors import ApiError
 from app.models import ActionEventType, Collection, CollectionItem, Resource, User, Vote
 from app.schemas.collection import CollectionCreate, CollectionUpdate
+from app.services.access import assert_author_or_admin, assert_user_can_write
 from app.services.events import log_action
 from app.services.tags import resolve_tags
 
@@ -21,6 +22,7 @@ async def _build_items(session: AsyncSession, resource_ids: list[UUID]) -> list[
 
 
 async def create_collection(session: AsyncSession, payload: CollectionCreate, user: User) -> Collection:
+    await assert_user_can_write(session, user)
     collection = Collection(
         author_id=user.id,
         title=payload.title,
@@ -36,7 +38,7 @@ async def create_collection(session: AsyncSession, payload: CollectionCreate, us
     return await get_collection(session, collection.id)
 
 
-async def list_collections(session: AsyncSession, limit: int, offset: int) -> tuple[list[Collection], int]:
+async def list_collections(session: AsyncSession, limit: int, offset: int, include_hidden: bool = False) -> tuple[list[Collection], int]:
     stmt = select(Collection).options(
         selectinload(Collection.author),
         selectinload(Collection.tags),
@@ -44,12 +46,15 @@ async def list_collections(session: AsyncSession, limit: int, offset: int) -> tu
         selectinload(Collection.items).selectinload(CollectionItem.resource).selectinload(Resource.tags),
     )
     count_stmt = select(func.count()).select_from(Collection)
+    if not include_hidden:
+        stmt = stmt.where(Collection.is_hidden.is_(False))
+        count_stmt = count_stmt.where(Collection.is_hidden.is_(False))
     stmt = stmt.order_by(Collection.created_at.desc()).limit(limit).offset(offset)
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 
 
-async def get_collection(session: AsyncSession, collection_id: UUID) -> Collection:
-    collection = await session.scalar(
+async def get_collection(session: AsyncSession, collection_id: UUID, include_hidden: bool = False) -> Collection:
+    stmt = (
         select(Collection)
         .where(Collection.id == collection_id)
         .options(
@@ -59,15 +64,21 @@ async def get_collection(session: AsyncSession, collection_id: UUID) -> Collecti
             selectinload(Collection.items).selectinload(CollectionItem.resource).selectinload(Resource.tags),
         )
     )
+    if not include_hidden:
+        stmt = stmt.where(Collection.is_hidden.is_(False))
+    collection = await session.scalar(stmt)
     if collection is None:
         raise ApiError(404, "COLLECTION_NOT_FOUND", "Collection was not found.")
     return collection
 
 
-async def update_collection(session: AsyncSession, collection_id: UUID, payload: CollectionUpdate, user: User) -> Collection:
-    collection = await get_collection(session, collection_id)
-    if collection.author_id != user.id:
-        raise ApiError(403, "FORBIDDEN", "Only the author can edit this collection.")
+async def update_collection(
+    session: AsyncSession, collection_id: UUID, payload: CollectionUpdate, user: User, *, enforce_write_guard: bool = True
+) -> Collection:
+    if enforce_write_guard:
+        await assert_user_can_write(session, user)
+    collection = await get_collection(session, collection_id, include_hidden=True)
+    assert_author_or_admin(collection.author_id, user, "edit this collection")
     data = payload.model_dump(exclude_unset=True)
     tag_names = data.pop("tags", None)
     resource_ids = data.pop("resource_ids", None)
@@ -78,10 +89,11 @@ async def update_collection(session: AsyncSession, collection_id: UUID, payload:
     if resource_ids is not None:
         collection.items = await _build_items(session, resource_ids)
     await session.commit()
-    return await get_collection(session, collection_id)
+    return await get_collection(session, collection_id, include_hidden=True)
 
 
 async def vote_collection(session: AsyncSession, collection_id: UUID, value: int, user: User) -> Collection:
+    await assert_user_can_write(session, user)
     collection = await get_collection(session, collection_id)
     existing = await session.scalar(select(Vote).where(Vote.user_id == user.id, Vote.target_type == "collection", Vote.target_id == collection.id))
     old_value = existing.value if existing else 0
@@ -102,7 +114,7 @@ async def search_collections(session: AsyncSession, query: str, limit: int) -> l
     pattern = f"%{query.strip()}%"
     stmt = (
         select(Collection)
-        .where(or_(Collection.title.ilike(pattern), Collection.description.ilike(pattern)))
+        .where(Collection.is_hidden.is_(False), or_(Collection.title.ilike(pattern), Collection.description.ilike(pattern)))
         .options(selectinload(Collection.author), selectinload(Collection.tags), selectinload(Collection.items))
         .order_by(Collection.created_at.desc())
         .limit(limit)

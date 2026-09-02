@@ -8,6 +8,7 @@ import { clearAuthSession, getStoredUser, saveAuthSession, tokenKey } from "@/li
 
 export function AuthNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profileHref, setProfileHref] = useState("/profile/me");
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export function AuthNav() {
       const token = window.localStorage.getItem(tokenKey);
       const user = getStoredUser();
       setIsLoggedIn(Boolean(token));
+      setIsAdmin(user?.role === "admin");
       setProfileHref(user ? `/profile/${user.username}` : "/profile/me");
 
       if (token && !user) {
@@ -56,6 +58,11 @@ export function AuthNav() {
 
   return (
     <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+      {isAdmin ? (
+        <Link href={"/admin" as Route} className="font-sans transition-colors hover:text-clay">
+          Admin
+        </Link>
+      ) : null}
       <Link href={profileHref as Route} className="font-sans transition-colors hover:text-clay">
         Profile
       </Link>
