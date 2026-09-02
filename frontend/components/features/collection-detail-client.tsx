@@ -11,6 +11,12 @@ import { ReasonModal } from "@/components/features/reason-modal";
 import { deleteCollection, voteCollection } from "@/lib/api";
 import { getStoredToken, getStoredUser } from "@/lib/auth-storage";
 
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner (L0 – L1)",
+  intermediate: "Intermediate (L2 – L3)",
+  advanced: "Advanced (M1 / M2)",
+};
+
 export function CollectionDetailClient({ collection: initialCollection }: { collection: CollectionRead }) {
   const router = useRouter();
   const [collection, setCollection] = useState<CollectionRead>(initialCollection);
@@ -175,7 +181,7 @@ export function CollectionDetailClient({ collection: initialCollection }: { coll
             <div className="font-accent text-xl text-accent sm:text-2xl">{String(item.position).padStart(2, "0")}</div>
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-2 text-xs uppercase tracking-[0.16em] text-muted">
-                <span>{item.resource.type.replaceAll("_", " ")} / {item.resource.difficulty}</span>
+                <span>{item.resource.type.replaceAll("_", " ")} / {difficultyLabels[item.resource.difficulty] ?? item.resource.difficulty}</span>
                 <a
                   href={item.resource.url}
                   target="_blank"

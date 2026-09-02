@@ -15,8 +15,16 @@ down_revision: str | None = "0005_socials_avatars_review"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+# ALTER TYPE ... ADD VALUE cannot run inside a transaction on PostgreSQL.
+transaction_per_migration = False
+
 
 def upgrade() -> None:
+    # Extend the user_role enum with the new verified_ufazian value.
+    # ALTER TYPE ... ADD VALUE cannot run inside a transaction block on PostgreSQL,
+    # so we must execute it with autocommit (COMMIT_ON_SUCCESS is equivalent here).
+    op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'verified_ufazian'")
+
     # Add profile & verified fields to users
     op.add_column("users", sa.Column("graduation_year", sa.Integer(), nullable=True))
     op.add_column("users", sa.Column("current_role", sa.String(length=120), nullable=True))

@@ -12,12 +12,18 @@ const labels: Record<string, string> = {
   book: "Book"
 };
 
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner (L0 – L1)",
+  intermediate: "Intermediate (L2 – L3)",
+  advanced: "Advanced (M1 / M2)",
+};
+
 function metadata(resource: ResourceRead): string {
   if (resource.type === "video") return "24 min watch";
   if (resource.type === "course") return "12 modules";
   if (resource.type === "github_repo") return "42 projects";
   if (resource.type === "book") return "Reference";
-  return resource.difficulty;
+  return difficultyLabels[resource.difficulty] ?? resource.difficulty;
 }
 
 export function ResourceList({ resources }: { resources: ResourceRead[] }) {

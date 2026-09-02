@@ -27,6 +27,12 @@ const typeLabels: Record<string, string> = {
   book: "Book"
 };
 
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner (L0 – L1)",
+  intermediate: "Intermediate (L2 – L3)",
+  advanced: "Advanced (M1 / M2)",
+};
+
 export function ResourceDetailClient({ resource: initialResource, currentUsername, isAdmin }: Props) {
   const router = useRouter();
   const [resource, setResource] = useState<ResourceRead>(initialResource);
@@ -108,7 +114,7 @@ export function ResourceDetailClient({ resource: initialResource, currentUsernam
             {typeLabels[resource.type] || resource.type}
           </span>
           <span className="border border-line bg-paper px-3 py-1 font-sans uppercase tracking-wider text-muted">
-            {resource.difficulty}
+            {difficultyLabels[resource.difficulty] ?? resource.difficulty}
           </span>
           <span className="border border-line bg-paper px-3 py-1 font-sans uppercase tracking-wider text-muted">
             {resource.category}

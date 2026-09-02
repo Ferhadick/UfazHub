@@ -552,9 +552,9 @@ export function SubmitWizard() {
                     onChange={(e) => setDifficulty(e.target.value as Difficulty)}
                     className="w-full border border-line bg-paper px-3 py-2.5 font-sans text-sm text-ink focus:border-accent focus:outline-none"
                   >
-                    <option value="beginner">Beginner (L1 / L2)</option>
-                    <option value="intermediate">Intermediate (L3 / Pre-Master)</option>
-                    <option value="advanced">Advanced (M1 / M2 / Alumni)</option>
+                    <option value="beginner">Beginner (L0 – L1)</option>
+                    <option value="intermediate">Intermediate (L2 – L3)</option>
+                    <option value="advanced">Advanced (M1 / M2)</option>
                   </select>
                 </div>
 

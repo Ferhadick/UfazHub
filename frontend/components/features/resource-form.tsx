@@ -193,9 +193,9 @@ export function ResourceForm({ initial, submitLabel = "Submit entry", onSave }: 
               <option value="book">Book</option>
             </select>
             <select {...form.register("difficulty")} className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none">
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
+              <option value="beginner">Beginner (L0 – L1)</option>
+              <option value="intermediate">Intermediate (L2 – L3)</option>
+              <option value="advanced">Advanced (M1 / M2)</option>
             </select>
             <input {...form.register("category")} placeholder="Category" className="border border-line bg-paper px-3 py-3 font-body font-normal transition-all focus:border-accent focus:shadow-[4px_4px_0_var(--color-clay)] focus:outline-none" />
           </div>
