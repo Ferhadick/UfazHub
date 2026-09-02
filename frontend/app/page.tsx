@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { HeroBrowseLinks } from "@/components/features/hero-browse-links";
 import { HomeFeedSection } from "@/components/features/home-feed-section";
 import { SearchLauncher } from "@/components/features/search-launcher";
@@ -11,10 +12,13 @@ export default async function HomePage() {
     listCollections(3).catch(() => ({ items: [], total: 0, limit: 3, offset: 0 })),
     listPeople(4).catch(() => ({ items: [], total: 0, limit: 4, offset: 0 }))
   ]);
-  const fallbackCollections = [
-    { title: "Backend developer roadmap", description: "Everything you need to move from first API to production service.", count: 24 },
-    { title: "Erasmus preparation kit", description: "Deadlines, language resources and honest advice from students who went.", count: 16 }
-  ];
+  const pathCards = collections.items.slice(0, 2).map((collection) => ({
+    id: collection.id,
+    title: collection.title,
+    description: collection.description,
+    count: collection.items.length,
+    href: `/collections/${collection.id}` as Route
+  }));
 
   return (
     <main>
@@ -51,32 +55,41 @@ export default async function HomePage() {
               <h2 className="font-accent text-3xl uppercase">Follow a thread</h2>
             </div>
             <div className="mt-6 space-y-5">
-              {(collections.items.length
-                ? collections.items.map((collection) => ({
-                    title: collection.title,
-                    description: collection.description,
-                    count: collection.items.length,
-                    href: `/collections/${collection.id}`
-                  }))
-                : fallbackCollections.map((collection) => ({ ...collection, href: "/collections" }))
-              ).slice(0, 2).map((collection, index) => (
-                <a
-                  key={collection.title}
-                  href={collection.href}
-                  className={index === 0 ? "block bg-accent p-6 text-paper transition-transform hover:-translate-y-1" : "block bg-clay p-6 text-ink transition-transform hover:-translate-y-1"}
-                >
-                  <div className={index === 0 ? "text-xs uppercase tracking-[0.16em] text-line" : "text-xs uppercase tracking-[0.16em] text-accent"}>
-                    {String(index + 1).padStart(2, "0")} / Collection
-                  </div>
-                  <div className="mt-8 font-accent text-2xl uppercase leading-none">{collection.title}</div>
-                  <p className={index === 0 ? "mt-4 font-sans text-sm leading-5 text-line" : "mt-4 font-sans text-sm leading-5 text-muted"}>{collection.description}</p>
-                  <div className="mt-8 flex justify-between border-t border-current pt-3 text-xs">
-                    <span>{collection.count} resources</span>
-                    <span>Open ↗</span>
-                  </div>
-                </a>
-              ))}
+              {pathCards.length === 0 ? (
+                <div className="border border-line bg-paper p-6">
+                  <div className="text-xs uppercase tracking-[0.16em] text-muted">No paths yet</div>
+                  <p className="mt-4 font-sans text-sm leading-6 text-muted">
+                    Collections appear here once someone groups useful resources into a thread.
+                  </p>
+                  <Link href="/collections/new" className="mt-5 inline-block border border-line px-3 py-2 font-sans text-sm font-bold hover:bg-clay hover:text-accent">
+                    Create a path
+                  </Link>
+                </div>
+              ) : (
+                pathCards.map((collection, index) => (
+                  <Link
+                    key={collection.id}
+                    href={collection.href}
+                    className={index === 0 ? "block bg-accent p-6 text-paper transition-transform hover:-translate-y-1" : "block bg-clay p-6 text-ink transition-transform hover:-translate-y-1"}
+                  >
+                    <div className={index === 0 ? "text-xs uppercase tracking-[0.16em] text-line" : "text-xs uppercase tracking-[0.16em] text-accent"}>
+                      {String(index + 1).padStart(2, "0")} / Collection
+                    </div>
+                    <div className="mt-8 font-accent text-2xl uppercase leading-none">{collection.title}</div>
+                    <p className={index === 0 ? "mt-4 font-sans text-sm leading-5 text-line" : "mt-4 font-sans text-sm leading-5 text-muted"}>{collection.description}</p>
+                    <div className="mt-8 flex justify-between border-t border-current pt-3 text-xs">
+                      <span>{collection.count} resources</span>
+                      <span>Open ↗</span>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
+            {pathCards.length > 0 ? (
+              <Link href="/collections" className="mt-4 inline-block text-xs text-accent">
+                See all paths ›
+              </Link>
+            ) : null}
 
             <div className="mt-10">
               <div className="text-xs uppercase tracking-[0.18em] text-accent">03 / People</div>
