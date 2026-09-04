@@ -23,6 +23,7 @@ import type {
   UserRole,
   UserStatus
 } from "@/types/api";
+import { clearAuthSession, saveAuthSession } from "@/lib/auth-storage";
 
 const API_BASE =
   typeof window === "undefined"
@@ -31,7 +32,10 @@ const API_BASE =
 
 type FetchOptions = RequestInit & {
   token?: string;
+  skipAuthRefresh?: boolean;
 };
+
+let refreshPromise: Promise<TokenResponse | null> | null = null;
 
 export class ApiClientError extends Error {
   constructor(
@@ -68,7 +72,9 @@ async function readApiError(response: Response, fallback: string, defaultCode: s
 
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
+  if (!(typeof FormData !== "undefined" && options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   if (options.token) {
     headers.set("Authorization", `Bearer ${options.token}`);
   }
@@ -80,12 +86,36 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
     cache: options.cache ?? "no-store"
   });
   if (!response.ok) {
+    if (response.status === 401 && options.token && !options.skipAuthRefresh && typeof window !== "undefined") {
+      const refreshed = await refreshAccessTokenOnce();
+      if (refreshed) {
+        return request<T>(path, { ...options, token: refreshed.access_token, skipAuthRefresh: true });
+      }
+    }
     throw await readApiError(response, "Request failed", "REQUEST_FAILED");
   }
   if (response.status === 204) {
     return undefined as T;
   }
   return (await response.json()) as T;
+}
+
+async function refreshAccessTokenOnce(): Promise<TokenResponse | null> {
+  if (!refreshPromise) {
+    refreshPromise = request<TokenResponse>("/auth/refresh", { method: "POST", skipAuthRefresh: true })
+      .then((result) => {
+        saveAuthSession(result.access_token, result.user);
+        return result;
+      })
+      .catch(() => {
+        clearAuthSession();
+        return null;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
 }
 
 export function listResources(limit = 20, q?: string, type?: string): Promise<PaginatedResponse<ResourceRead>> {
@@ -214,18 +244,7 @@ export function updateMe(
 export async function uploadAvatar(token: string, file: File): Promise<UserPublic> {
   const formData = new FormData();
   formData.append("file", file);
-  const headers = new Headers();
-  headers.set("Authorization", `Bearer ${token}`);
-  const response = await fetch(`${API_BASE}/users/me/avatar`, {
-    method: "POST",
-    headers,
-    body: formData,
-    credentials: "include"
-  });
-  if (!response.ok) {
-    throw await readApiError(response, "Avatar upload failed", "UPLOAD_FAILED");
-  }
-  return response.json();
+  return request<UserPublic>("/users/me/avatar", { method: "POST", token, body: formData });
 }
 
 export function deleteAvatar(token: string): Promise<UserPublic> {
@@ -268,18 +287,11 @@ export async function uploadResourceFile(
 ): Promise<{ url: string; filename: string; content_type: string | null; size: number }> {
   const formData = new FormData();
   formData.append("file", file);
-  const headers = new Headers();
-  headers.set("Authorization", `Bearer ${token}`);
-  const response = await fetch(`${API_BASE}/resources/upload`, {
+  return request<{ url: string; filename: string; content_type: string | null; size: number }>("/resources/upload", {
     method: "POST",
-    headers,
-    body: formData,
-    credentials: "include"
+    token,
+    body: formData
   });
-  if (!response.ok) {
-    throw await readApiError(response, "File upload failed", "UPLOAD_FAILED");
-  }
-  return response.json();
 }
 
 export function createResource(
