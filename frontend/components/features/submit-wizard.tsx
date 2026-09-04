@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { CheckCircle2, FileUp, Link2, Paperclip, X } from "lucide-react";
@@ -219,7 +220,7 @@ export function SubmitWizard() {
             : `Your ${success.kind} is now available in UFAZ Hub.`}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          {success.href ? <Link href={success.href} className="rounded bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">Open it</Link> : null}
+          {success.href ? <Link href={success.href as Route} className="rounded bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">Open it</Link> : null}
           <button
             type="button"
             onClick={() => {

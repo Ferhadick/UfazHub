@@ -20,10 +20,12 @@ transaction_per_migration = False
 
 
 def upgrade() -> None:
-    # Extend the user_role enum with the new verified_ufazian value.
-    # ALTER TYPE ... ADD VALUE cannot run inside a transaction block on PostgreSQL,
-    # so we must execute it with autocommit (COMMIT_ON_SUCCESS is equivalent here).
-    op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'verified_ufazian'")
+    # ALTER TYPE ... ADD VALUE cannot run inside a transaction on PostgreSQL.
+    # We must get a raw connection with AUTOCOMMIT isolation level to execute it.
+    bind = op.get_bind()
+    bind.execution_options(isolation_level="AUTOCOMMIT").execute(
+        sa.text("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'verified_ufazian'")
+    )
 
     # Add profile & verified fields to users
     op.add_column("users", sa.Column("graduation_year", sa.Integer(), nullable=True))
