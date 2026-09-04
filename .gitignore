@@ -31,6 +31,7 @@ htmlcov/
 backend/.venv/
 backend/.pytest_cache/
 backend/ufaz_hub_backend.egg-info/
+backend/uploads/
 
 # Node / Next.js
 frontend/node_modules/

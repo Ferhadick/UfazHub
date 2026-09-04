@@ -10,7 +10,7 @@ from app.schemas.user import UserPublic
 
 class ArticleBase(BaseModel):
     title: str = Field(min_length=3, max_length=180)
-    content: str = Field(min_length=40)
+    content: str = Field(min_length=1)
     excerpt: str | None = Field(default=None, max_length=400)
     cover_image_url: HttpUrl | None = None
     status: ArticleStatus = ArticleStatus.draft
@@ -23,7 +23,7 @@ class ArticleCreate(ArticleBase):
 
 class ArticleUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=180)
-    content: str | None = Field(default=None, min_length=40)
+    content: str | None = Field(default=None, min_length=1)
     excerpt: str | None = Field(default=None, max_length=400)
     cover_image_url: HttpUrl | None = None
     status: ArticleStatus | None = None
@@ -44,6 +44,7 @@ class ArticleRead(BaseModel):
     upvotes: int
     downvotes: int
     is_hidden: bool = False
+    is_pending_review: bool = False
     hidden_reason: str | None = None
     hidden_at: datetime | None = None
     created_at: datetime

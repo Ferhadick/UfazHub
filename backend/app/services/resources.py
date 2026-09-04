@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import ApiError
-from app.models import ActionEventType, Resource, User, Vote
+from app.models import ActionEventType, Resource, ResourceAttachment, ResourceLink, Tag, User, Vote
 from app.schemas.resource import ResourceCreate, ResourceUpdate
 from app.services.access import assert_author_or_admin, assert_user_can_write
 from app.services.events import log_action
@@ -30,6 +30,20 @@ async def create_resource(session: AsyncSession, payload: ResourceCreate, user: 
         warning=payload.warning,
         student_note=payload.student_note,
         tags=await resolve_tags(session, payload.tags),
+        links=[
+            ResourceLink(url=str(link.url), label=link.label, position=position)
+            for position, link in enumerate(payload.links)
+        ],
+        attachments=[
+            ResourceAttachment(
+                url=str(attachment.url),
+                filename=attachment.filename,
+                content_type=attachment.content_type,
+                size_bytes=attachment.size_bytes,
+                position=position,
+            )
+            for position, attachment in enumerate(payload.attachments)
+        ],
         is_hidden=not is_admin,
         is_pending_review=not is_admin,
     )
@@ -79,6 +93,8 @@ async def list_resources(
             Resource.best_part.ilike(pattern),
             Resource.warning.ilike(pattern),
             Resource.student_note.ilike(pattern),
+            Resource.tags.any(Tag.name.ilike(pattern)),
+            Resource.author.has(or_(User.name.ilike(pattern), User.username.ilike(pattern))),
         )
         stmt = stmt.where(or_(*searchable_fields))
         count_stmt = count_stmt.where(or_(*searchable_fields))
@@ -103,14 +119,29 @@ async def update_resource(
         await assert_user_can_write(session, user)
     resource = await get_resource(session, resource_id, include_hidden=True)
     assert_author_or_admin(resource.author_id, user, "edit this resource")
-    data = payload.model_dump(exclude_unset=True)
-    tag_names = data.pop("tags", None)
+    data = payload.model_dump(exclude_unset=True, exclude={"tags", "links", "attachments"})
     if "url" in data and data["url"] is not None:
         data["url"] = str(data["url"])
     for key, value in data.items():
         setattr(resource, key, value)
-    if tag_names is not None:
-        resource.tags = await resolve_tags(session, tag_names)
+    if payload.tags is not None:
+        resource.tags = await resolve_tags(session, payload.tags)
+    if payload.links is not None:
+        resource.links = [
+            ResourceLink(url=str(link.url), label=link.label, position=position)
+            for position, link in enumerate(payload.links)
+        ]
+    if payload.attachments is not None:
+        resource.attachments = [
+            ResourceAttachment(
+                url=str(attachment.url),
+                filename=attachment.filename,
+                content_type=attachment.content_type,
+                size_bytes=attachment.size_bytes,
+                position=position,
+            )
+            for position, attachment in enumerate(payload.attachments)
+        ]
     await session.commit()
     return await get_resource(session, resource_id, include_hidden=True)
 
@@ -154,6 +185,8 @@ async def search_resources(session: AsyncSession, query: str, limit: int, offset
         Resource.best_part.ilike(pattern),
         Resource.warning.ilike(pattern),
         Resource.student_note.ilike(pattern),
+        Resource.tags.any(Tag.name.ilike(pattern)),
+        Resource.author.has(or_(User.name.ilike(pattern), User.username.ilike(pattern))),
     )
     stmt = (
         select(Resource)

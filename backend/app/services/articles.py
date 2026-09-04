@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import ApiError
-from app.models import ActionEventType, Article, ArticleStatus, User, Vote
+from app.models import ActionEventType, Article, ArticleStatus, Tag, User, Vote
 from app.schemas.article import ArticleCreate, ArticleUpdate
 from app.services.access import assert_author_or_admin, assert_user_can_write
 from app.services.events import log_action
@@ -72,6 +72,7 @@ async def list_articles(
     offset: int,
     include_drafts: bool = False,
     include_hidden: bool = False,
+    q: str | None = None,
 ) -> tuple[list[Article], int]:
     stmt = select(Article).options(selectinload(Article.author), selectinload(Article.tags))
     count_stmt = select(func.count()).select_from(Article)
@@ -81,6 +82,17 @@ async def list_articles(
     if not include_hidden:
         stmt = stmt.where(Article.is_hidden.is_(False))
         count_stmt = count_stmt.where(Article.is_hidden.is_(False))
+    if q:
+        pattern = f"%{q.strip()}%"
+        search = or_(
+            Article.title.ilike(pattern),
+            Article.excerpt.ilike(pattern),
+            Article.content.ilike(pattern),
+            Article.tags.any(Tag.name.ilike(pattern)),
+            Article.author.has(or_(User.name.ilike(pattern), User.username.ilike(pattern))),
+        )
+        stmt = stmt.where(search)
+        count_stmt = count_stmt.where(search)
     stmt = stmt.order_by(Article.created_at.desc()).limit(limit).offset(offset)
     return list((await session.scalars(stmt)).all()), int(await session.scalar(count_stmt) or 0)
 
@@ -182,7 +194,7 @@ async def search_articles(session: AsyncSession, query: str, limit: int) -> list
         .where(
             Article.status == ArticleStatus.published,
             Article.is_hidden.is_(False),
-            or_(Article.title.ilike(pattern), Article.excerpt.ilike(pattern), Article.content.ilike(pattern)),
+            or_(Article.title.ilike(pattern), Article.excerpt.ilike(pattern), Article.content.ilike(pattern), Article.tags.any(Tag.name.ilike(pattern)), Article.author.has(or_(User.name.ilike(pattern), User.username.ilike(pattern)))),
         )
         .options(selectinload(Article.author), selectinload(Article.tags))
         .order_by(Article.created_at.desc())

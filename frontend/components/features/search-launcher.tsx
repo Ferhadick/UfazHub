@@ -1,18 +1,17 @@
 "use client";
 
+import { Search } from "lucide-react";
+
 export function SearchLauncher() {
   return (
     <button
       type="button"
       onClick={() => window.dispatchEvent(new Event("ufaz-open-search"))}
-      className="mt-8 w-full max-w-md border-2 border-line bg-paper p-4 text-left shadow-[6px_6px_0_var(--color-accent)] md:mt-9"
+      className="mt-7 flex w-full max-w-2xl items-center gap-3 rounded border border-line bg-paper px-4 py-3.5 text-left text-sm text-muted transition-colors hover:border-accent"
     >
-      <span className="block text-[10px] uppercase tracking-[0.18em] text-accent">Search the archive</span>
-      <span className="mt-3 flex items-center justify-between font-sans text-base text-muted">
-        <span>What are you looking for?</span>
-        <span className="hidden text-xs sm:inline">Ctrl<br />K</span>
-        <span className="text-xs sm:hidden">Open</span>
-      </span>
+      <Search className="h-4 w-4 shrink-0" />
+      <span className="flex-1">Search notes, links, collections and questions</span>
+      <kbd className="hidden border-l border-line pl-3 text-[11px] text-muted sm:inline">⌘K</kbd>
     </button>
   );
 }

@@ -9,14 +9,13 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
   return (
     <button
       className={clsx(
-        "inline-flex min-h-10 items-center justify-center rounded-sm px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50",
-        variant === "primary" && "bg-ink text-paper hover:bg-accent",
-        variant === "outline" && "border border-line bg-transparent text-ink hover:border-ink",
-        variant === "quiet" && "bg-transparent text-ink hover:text-accent",
+        "inline-flex min-h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        variant === "primary" && "bg-accent text-white hover:bg-blue-700",
+        variant === "outline" && "border border-line bg-paper text-ink hover:bg-paper-50",
+        variant === "quiet" && "bg-transparent text-muted hover:bg-paper-50 hover:text-ink",
         className
       )}
       {...props}
     />
   );
 }
-

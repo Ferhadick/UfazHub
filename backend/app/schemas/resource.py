@@ -15,6 +15,38 @@ class TagRead(BaseModel):
     slug: str
 
 
+class ResourceLinkCreate(BaseModel):
+    url: HttpUrl
+    label: str | None = Field(default=None, max_length=120)
+
+
+class ResourceLinkRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    url: str
+    label: str | None
+    position: int
+
+
+class ResourceAttachmentCreate(BaseModel):
+    url: HttpUrl
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str | None = Field(default=None, max_length=100)
+    size_bytes: int | None = Field(default=None, ge=0)
+
+
+class ResourceAttachmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    url: str
+    filename: str
+    content_type: str | None
+    size_bytes: int | None
+    position: int
+
+
 class ResourceBase(BaseModel):
     title: str = Field(min_length=3, max_length=180)
     description: str = Field(min_length=20, max_length=2000)
@@ -29,6 +61,8 @@ class ResourceBase(BaseModel):
     warning: str | None = Field(default=None, max_length=500)
     student_note: str | None = Field(default=None, max_length=800)
     tags: list[str] = Field(default_factory=list, max_length=8)
+    links: list[ResourceLinkCreate] = Field(default_factory=list, max_length=20)
+    attachments: list[ResourceAttachmentCreate] = Field(default_factory=list, max_length=20)
 
 
 class ResourceCreate(ResourceBase):
@@ -49,6 +83,8 @@ class ResourceUpdate(BaseModel):
     warning: str | None = Field(default=None, max_length=500)
     student_note: str | None = Field(default=None, max_length=800)
     tags: list[str] | None = Field(default=None, max_length=8)
+    links: list[ResourceLinkCreate] | None = Field(default=None, max_length=20)
+    attachments: list[ResourceAttachmentCreate] | None = Field(default=None, max_length=20)
 
 
 class ResourceRead(BaseModel):
@@ -77,6 +113,8 @@ class ResourceRead(BaseModel):
     updated_at: datetime
     author: UserPublic
     tags: list[TagRead]
+    links: list[ResourceLinkRead] = Field(default_factory=list)
+    attachments: list[ResourceAttachmentRead] = Field(default_factory=list)
 
 
 class VoteRequest(BaseModel):

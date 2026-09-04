@@ -43,6 +43,29 @@ export class ApiClientError extends Error {
   }
 }
 
+type ApiErrorDetail = string | Array<{ msg?: string; loc?: Array<string | number> }>;
+type ApiErrorBody = { detail?: ApiErrorDetail; code?: string };
+
+function apiErrorMessage(body: ApiErrorBody | null, fallback: string): string {
+  if (typeof body?.detail === "string" && body.detail.trim()) return body.detail;
+  if (Array.isArray(body?.detail)) {
+    const messages = body.detail
+      .map((item) => {
+        const field = item.loc?.filter((part) => part !== "body").join(".");
+        if (!item.msg) return null;
+        return field ? `${field}: ${item.msg}` : item.msg;
+      })
+      .filter((value): value is string => Boolean(value));
+    if (messages.length) return messages.join(" ");
+  }
+  return fallback;
+}
+
+async function readApiError(response: Response, fallback: string, defaultCode: string): Promise<ApiClientError> {
+  const body = (await response.json().catch(() => null)) as ApiErrorBody | null;
+  return new ApiClientError(apiErrorMessage(body, fallback), response.status, body?.code ?? defaultCode);
+}
+
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
@@ -57,8 +80,7 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
     cache: options.cache ?? "no-store"
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { detail?: string; code?: string } | null;
-    throw new ApiClientError(body?.detail ?? "Request failed", response.status, body?.code ?? "REQUEST_FAILED");
+    throw await readApiError(response, "Request failed", "REQUEST_FAILED");
   }
   if (response.status === 204) {
     return undefined as T;
@@ -93,8 +115,10 @@ export function searchArchive(query: string): Promise<FeedItem[]> {
   return request<FeedItem[]>(`/search?q=${encodeURIComponent(query)}&limit=8`);
 }
 
-export function listArticles(limit = 20): Promise<PaginatedResponse<ArticleRead>> {
-  return request<PaginatedResponse<ArticleRead>>(`/articles?limit=${limit}`);
+export function listArticles(limit = 20, q?: string): Promise<PaginatedResponse<ArticleRead>> {
+  const params: Record<string, string | number | undefined> = { limit };
+  if (q) params.q = q;
+  return request<PaginatedResponse<ArticleRead>>(`/articles${queryString(params)}`);
 }
 
 export function getArticle(slug: string): Promise<ArticleRead> {
@@ -127,9 +151,20 @@ export function voteCollection(token: string, id: string, value: number): Promis
   return request<CollectionRead>(`/collections/${id}/vote`, { method: "POST", token, body: JSON.stringify({ value }) });
 }
 
-export function listPeople(limit = 20, q?: string): Promise<PaginatedResponse<UserPublic>> {
+export function listPeople(
+  limit = 20,
+  q?: string,
+  options?: {
+    group?: "all" | "verified" | "students" | "alumni" | "researchers";
+    faculty?: string;
+    sort?: "featured" | "reputation" | "newest" | "name";
+  }
+): Promise<PaginatedResponse<UserPublic>> {
   const params: Record<string, string | number | undefined> = { limit };
   if (q) params.q = q;
+  if (options?.group && options.group !== "all") params.group = options.group;
+  if (options?.faculty) params.faculty = options.faculty;
+  if (options?.sort) params.sort = options.sort;
   return request<PaginatedResponse<UserPublic>>(`/people${queryString(params)}`);
 }
 
@@ -188,8 +223,7 @@ export async function uploadAvatar(token: string, file: File): Promise<UserPubli
     credentials: "include"
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { detail?: string; code?: string } | null;
-    throw new ApiClientError(body?.detail ?? "Avatar upload failed", response.status, body?.code ?? "UPLOAD_FAILED");
+    throw await readApiError(response, "Avatar upload failed", "UPLOAD_FAILED");
   }
   return response.json();
 }
@@ -228,6 +262,26 @@ export function loginUser(payload: { email: string; password: string }): Promise
   return request<TokenResponse>("/auth/login", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export async function uploadResourceFile(
+  token: string,
+  file: File
+): Promise<{ url: string; filename: string; content_type: string | null; size: number }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${API_BASE}/resources/upload`, {
+    method: "POST",
+    headers,
+    body: formData,
+    credentials: "include"
+  });
+  if (!response.ok) {
+    throw await readApiError(response, "File upload failed", "UPLOAD_FAILED");
+  }
+  return response.json();
+}
+
 export function createResource(
   token: string,
   payload: {
@@ -244,6 +298,8 @@ export function createResource(
     warning?: string;
     student_note?: string;
     tags: string[];
+    links?: Array<{ url: string; label?: string }>;
+    attachments?: Array<{ url: string; filename: string; content_type?: string | null; size_bytes?: number }>;
   }
 ): Promise<ResourceRead> {
   return request<ResourceRead>("/resources", { method: "POST", token, body: JSON.stringify(payload) });

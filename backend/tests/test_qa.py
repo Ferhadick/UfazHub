@@ -145,3 +145,15 @@ async def test_qa_flow_and_permissions(client: AsyncClient) -> None:
     queue_data = admin_queue.json()
     assert queue_data["total_questions"] >= 1
     assert any(c["keyword"] == "internship" for c in queue_data["clusters"])
+
+
+def test_question_status_matches_varchar_migration() -> None:
+    """Regression: migration 0006 stores questions.status as VARCHAR(30)."""
+    from sqlalchemy import Enum as SAEnum
+
+    from app.models import Question
+
+    status_type = Question.__table__.c.status.type
+    assert isinstance(status_type, SAEnum)
+    assert status_type.native_enum is False
+    assert status_type.length == 30

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { ArrowRight } from "lucide-react";
 import { HeroBrowseLinks } from "@/components/features/hero-browse-links";
 import { HomeFeedSection } from "@/components/features/home-feed-section";
 import { SearchLauncher } from "@/components/features/search-launcher";
@@ -7,120 +8,99 @@ import { listCollections, listFeed, listPeople, listTags } from "@/lib/api";
 
 export default async function HomePage() {
   const [feed, tags, collections, people] = await Promise.all([
-    listFeed(8).catch(() => []),
+    listFeed(10).catch(() => []),
     listTags(6).catch(() => []),
     listCollections(3).catch(() => ({ items: [], total: 0, limit: 3, offset: 0 })),
     listPeople(4).catch(() => ({ items: [], total: 0, limit: 4, offset: 0 }))
   ]);
-  const pathCards = collections.items.slice(0, 2).map((collection) => ({
-    id: collection.id,
-    title: collection.title,
-    description: collection.description,
-    count: collection.items.length,
-    href: `/collections/${collection.id}` as Route
-  }));
 
   return (
     <main>
       <section className="border-b border-line bg-paper">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-12 pt-10 md:grid-cols-[1.35fr_0.85fr] md:gap-12 md:px-8 md:pb-24 md:pt-24">
-          <div>
-            <div className="text-xs uppercase tracking-[0.24em] text-accent"><span className="mr-2 inline-block h-2 w-2 bg-clay" />An open index of UFAZ</div>
-            <div className="mt-9 hero-title">
-              <div className="whitespace-nowrap">Things</div>
-              <div className="hero-title-blue whitespace-nowrap">Worth</div>
-              <div className="hero-title-outline whitespace-nowrap">Knowing.</div>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center">
-            <div className="mb-24 hidden w-fit rotate-[-4deg] border border-line px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-muted md:block">
-              Field notes / 001
-            </div>
-            <p className="max-w-md font-sans text-lg leading-7 text-muted">
-              Resources, notes and hard-won advice collected by students. No feeds to keep up with. Just useful things, in one place.
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:px-8 md:py-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+          <div className="max-w-3xl">
+            <p className="mb-3 text-sm font-semibold text-accent">UFAZ community library</p>
+            <h1 className="hero-title max-w-2xl">Notes, resources and answers from people at UFAZ.</h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted md:text-lg">
+              Search what students have shared, ask a question, or add something useful for the next person.
             </p>
             <SearchLauncher />
-            <HeroBrowseLinks tags={tags.length ? tags.map((tag) => tag.name) : ["Python", "PostgreSQL", "Internships"]} />
+            <HeroBrowseLinks tags={tags.length ? tags.map((tag) => tag.name) : ["Python", "Math", "Internships"]} />
+          </div>
+
+          <div className="border-t border-line pt-5 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0">
+            <p className="text-sm font-semibold text-ink">Have something useful?</p>
+            <p className="mt-2 text-sm leading-6 text-muted">Paste Markdown, add a link, or upload a file. The form handles the rest.</p>
+            <Link
+              href={"/submit" as Route}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+            >
+              Share with UFAZ <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section id="index" className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-16">
-        <div className="grid gap-16 md:grid-cols-[1.6fr_0.9fr]">
+      <section className="border-b border-line bg-surface">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-7 md:flex-row md:items-center md:justify-between md:px-8">
+          <div className="max-w-3xl">
+            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-accent">Research at UFAZ Hub</div>
+            <h2 className="mt-1 font-serif text-2xl font-semibold">Projects, papers and people behind the work.</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">A dedicated place for student and faculty research, from an early project idea to a paper, dataset or reproducible codebase.</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-4 text-sm font-semibold">
+            <Link href={"/research" as Route} className="text-accent hover:underline">Browse research</Link>
+            <Link href={"/submit?research=1" as Route} className="text-accent hover:underline">Share research</Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="index" className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <HomeFeedSection items={feed} />
 
-          <aside>
-            <div className="text-xs uppercase tracking-[0.18em] text-accent">02 / Paths</div>
-            <div className="mt-2 border-b-4 border-line pb-3">
-              <h2 className="font-accent text-3xl uppercase">Follow a thread</h2>
-            </div>
-            <div className="mt-6 space-y-5">
-              {pathCards.length === 0 ? (
-                <div className="border border-line bg-paper p-6">
-                  <div className="text-xs uppercase tracking-[0.16em] text-muted">No paths yet</div>
-                  <p className="mt-4 font-sans text-sm leading-6 text-muted">
-                    Collections appear here once someone groups useful resources into a thread.
-                  </p>
-                  <Link href="/collections/new" className="mt-5 inline-block border border-line px-3 py-2 font-sans text-sm font-bold hover:bg-clay hover:text-accent">
-                    Create a path
-                  </Link>
-                </div>
-              ) : (
-                pathCards.map((collection, index) => (
-                  <Link
-                    key={collection.id}
-                    href={collection.href}
-                    className={index === 0 ? "block bg-accent p-6 text-paper transition-transform hover:-translate-y-1" : "block bg-clay p-6 text-ink transition-transform hover:-translate-y-1"}
-                  >
-                    <div className={index === 0 ? "text-xs uppercase tracking-[0.16em] text-line" : "text-xs uppercase tracking-[0.16em] text-accent"}>
-                      {String(index + 1).padStart(2, "0")} / Collection
-                    </div>
-                    <div className="mt-8 font-accent text-2xl uppercase leading-none">{collection.title}</div>
-                    <p className={index === 0 ? "mt-4 font-sans text-sm leading-5 text-line" : "mt-4 font-sans text-sm leading-5 text-muted"}>{collection.description}</p>
-                    <div className="mt-8 flex justify-between border-t border-current pt-3 text-xs">
-                      <span>{collection.count} resources</span>
-                      <span>Open ↗</span>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-            {pathCards.length > 0 ? (
-              <Link href="/collections" className="mt-4 inline-block text-xs text-accent">
-                See all paths ›
-              </Link>
-            ) : null}
-
-            <div className="mt-10">
-              <div className="text-xs uppercase tracking-[0.18em] text-accent">03 / People</div>
-              <div className="mt-2 border-b-4 border-line pb-3">
-                <h2 className="font-accent text-2xl uppercase">Good neighbours</h2>
+          <aside className="space-y-9">
+            <section>
+              <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
+                <h2 className="font-serif text-lg font-semibold">Collections</h2>
+                <Link href="/collections" className="text-xs font-medium text-accent hover:underline">All collections</Link>
               </div>
-              <div className="mt-5 divide-y divide-line border-y border-line">
-                {people.items.slice(0, 3).map((person, index) => (
-                  <Link key={person.id} href={`/profile/${person.username}`} className="grid grid-cols-[1.5rem_2rem_1fr_4rem] items-center gap-3 py-3 text-xs transition-colors hover:bg-paper/70">
-                    <span>{index + 1}</span>
-                    <span className="flex h-7 w-7 items-center justify-center bg-accent font-accent text-[10px] text-paper">
-                      {person.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}
+              <div className="divide-y divide-line">
+                {collections.items.length === 0 ? (
+                  <p className="py-4 text-sm text-muted">No collections yet.</p>
+                ) : (
+                  collections.items.map((collection) => (
+                    <Link key={collection.id} href={`/collections/${collection.id}`} className="block py-4 first:pt-2 hover:text-accent">
+                      <div className="text-sm font-semibold text-ink">{collection.title}</div>
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted">{collection.description}</p>
+                      <div className="mt-2 text-xs text-muted">{collection.items.length} resources</div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
+                <h2 className="font-serif text-lg font-semibold">Contributors</h2>
+                <Link href="/people" className="text-xs font-medium text-accent hover:underline">All people</Link>
+              </div>
+              <div className="divide-y divide-line">
+                {people.items.length === 0 ? <p className="py-4 text-sm text-muted">No contributors yet.</p> : null}
+                {people.items.slice(0, 4).map((person) => (
+                  <Link key={person.id} href={`/profile/${person.username}`} className="flex items-center gap-3 py-3 hover:bg-surface">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-clay text-xs font-semibold text-accent">
+                      {person.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
                     </span>
-                    <span>
-                      <span className="block font-sans font-bold">{person.name}</span>
-                      <span className="block text-muted">{person.faculty ?? "UFAZ"}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{person.name}</span>
+                      <span className="block truncate text-xs text-muted">{person.current_role ?? person.faculty ?? "UFAZ"}</span>
                     </span>
-                    <span className="text-right">{person.reputation_score}</span>
+                    <span className="text-xs text-muted">{person.reputation_score}</span>
                   </Link>
                 ))}
               </div>
-              <Link href="/people" className="mt-4 inline-block text-xs text-accent">See everyone ›</Link>
-            </div>
-
-            <div className="mt-12 border-t-4 border-line pt-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-accent">Have something useful?</div>
-              <h2 className="mt-4 font-accent text-2xl uppercase leading-none">Leave the next student a better map.</h2>
-              <Link href="/resources/new" className="mt-5 inline-block bg-accent px-5 py-3 font-sans text-sm font-bold text-paper">
-                + Submit an entry
-              </Link>
-            </div>
+            </section>
           </aside>
         </div>
       </section>

@@ -1,121 +1,42 @@
 import type { ResourceRead } from "@/types/api";
 import Link from "next/link";
 import type { Route } from "next";
+import { ResourcePreview } from "@/components/features/resource-preview";
 
 const labels: Record<string, string> = {
   course: "Course",
   article: "Article",
   video: "Video",
-  docs: "Docs",
+  docs: "Document",
   github_repo: "Repository",
   website: "Website",
   book: "Book"
 };
 
-const difficultyLabels: Record<string, string> = {
-  beginner: "Beginner (L0 – L1)",
-  intermediate: "Intermediate (L2 – L3)",
-  advanced: "Advanced (M1 / M2)",
-};
-
-function metadata(resource: ResourceRead): string {
-  if (resource.type === "video") return "24 min watch";
-  if (resource.type === "course") return "12 modules";
-  if (resource.type === "github_repo") return "42 projects";
-  if (resource.type === "book") return "Reference";
-  return difficultyLabels[resource.difficulty] ?? resource.difficulty;
-}
-
 export function ResourceList({ resources }: { resources: ResourceRead[] }) {
   if (resources.length === 0) {
-    return (
-      <div className="border-y border-line py-12 text-center text-muted">
-        No entries yet. The archive starts with the first useful submission.
-      </div>
-    );
+    return <div className="rounded-lg border border-line bg-paper-50 py-12 text-center text-sm text-muted">No resources found.</div>;
   }
 
   return (
-    <div className="divide-y divide-line border-y border-line">
-      {resources.map((resource, index) => (
-        <article key={resource.id} className="grid gap-3 py-6 transition-colors hover:bg-paper/70 md:grid-cols-[4rem_1fr_8rem] md:gap-4">
-          <div className="flex items-baseline justify-between gap-4 md:block">
-            <div className="font-accent text-2xl text-muted">{String(index + 1).padStart(2, "0")}</div>
-            <div className="font-accent text-2xl md:hidden">{resource.upvotes - resource.downvotes}</div>
+    <div className="divide-y divide-line rounded-lg border border-line bg-paper">
+      {resources.map((resource) => (
+        <article key={resource.id} className="p-5 sm:p-6">
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+            <span className="rounded-full bg-paper-50 px-2 py-1">{labels[resource.type] ?? resource.type}</span>
+            <span>{resource.category}</span>
+            <span aria-hidden="true">·</span>
+            <span>{resource.upvotes - resource.downvotes} points</span>
           </div>
-          <div className="min-w-0">
-            <div className="text-xs uppercase tracking-[0.16em] text-muted">
-              {labels[resource.type]} / {metadata(resource)}
-            </div>
-            <h3 className="mt-2 font-accent text-2xl leading-tight break-words md:text-3xl">
-              <Link href={`/resources/${resource.id}` as Route} className="transition-colors hover:text-accent">
-                {resource.title}
-              </Link>
-            </h3>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{resource.description}</p>
-            {(resource.use_case || resource.time_commitment || resource.best_part || resource.warning || resource.student_note) && (
-              <div className="mt-4 grid gap-3 border-l-4 border-line pl-4 font-sans text-sm leading-6 text-muted md:grid-cols-2">
-                {resource.use_case ? (
-                  <div>
-                    <span className="font-body text-[10px] uppercase tracking-[0.14em] text-accent">Best for</span>
-                    <p>{resource.use_case}</p>
-                  </div>
-                ) : null}
-                {resource.time_commitment ? (
-                  <div>
-                    <span className="font-body text-[10px] uppercase tracking-[0.14em] text-accent">Time</span>
-                    <p>{resource.time_commitment}</p>
-                  </div>
-                ) : null}
-                {resource.best_part ? (
-                  <div className="md:col-span-2">
-                    <span className="font-body text-[10px] uppercase tracking-[0.14em] text-accent">Best part</span>
-                    <p>{resource.best_part}</p>
-                  </div>
-                ) : null}
-                {resource.warning ? (
-                  <div className="md:col-span-2">
-                    <span className="font-body text-[10px] uppercase tracking-[0.14em] text-accent">Watch out</span>
-                    <p>{resource.warning}</p>
-                  </div>
-                ) : null}
-                {resource.student_note ? (
-                  <div className="md:col-span-2">
-                    <span className="font-body text-[10px] uppercase tracking-[0.14em] text-accent">Student note</span>
-                    <p>{resource.student_note}</p>
-                  </div>
-                ) : null}
-              </div>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
-              <Link href={`/profile/${resource.author.username}` as Route} className="inline-flex items-center gap-2 font-sans font-bold text-ink transition-colors hover:text-accent">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden border border-line bg-clay font-accent text-[9px] text-accent">
-                  {resource.author.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={resource.author.avatar_url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    resource.author.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()
-                  )}
-                </span>
-                {resource.author.name}
-              </Link>
-              <a
-                href={resource.url}
-                target="_blank"
-                rel="noreferrer"
-                className="border border-line bg-paper px-2 py-0.5 text-[11px] text-muted hover:border-accent hover:text-accent"
-                title="Direct link"
-              >
-                Link ↗
-              </a>
-              {resource.tags.map((tag) => (
-                <span key={tag.id} className="border border-line px-2 py-1">
-                  #{tag.name}
-                </span>
-              ))}
-            </div>
+          <h3 className="text-lg font-semibold tracking-tight sm:text-xl">
+            <Link href={`/resources/${resource.id}` as Route} className="hover:text-accent">{resource.title}</Link>
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{resource.description}</p>
+          <ResourcePreview resource={resource} compact />
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
+            <Link href={`/profile/${resource.author.username}` as Route} className="font-medium text-ink hover:text-accent">{resource.author.name}</Link>
+            {resource.tags.slice(0, 5).map((tag) => <span key={tag.id} className="rounded-full bg-paper-50 px-2 py-1">#{tag.name}</span>)}
           </div>
-          <div className="hidden text-right font-accent text-2xl md:block">{resource.upvotes - resource.downvotes}</div>
         </article>
       ))}
     </div>

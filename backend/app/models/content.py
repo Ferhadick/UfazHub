@@ -60,6 +60,44 @@ class Resource(Base):
     author = relationship("User", back_populates="resources", foreign_keys=[author_id])
     hidden_by = relationship("User", foreign_keys=[hidden_by_id])
     tags = relationship("Tag", secondary=resource_tags, lazy="selectin")
+    links = relationship(
+        "ResourceLink", back_populates="resource", cascade="all, delete-orphan", order_by="ResourceLink.position", lazy="selectin"
+    )
+    attachments = relationship(
+        "ResourceAttachment",
+        back_populates="resource",
+        cascade="all, delete-orphan",
+        order_by="ResourceAttachment.position",
+        lazy="selectin",
+    )
+
+
+class ResourceLink(Base):
+    __tablename__ = "resource_links"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    resource_id: Mapped[UUID] = mapped_column(ForeignKey("resources.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str] = mapped_column(Text)
+    label: Mapped[str | None] = mapped_column(String(120))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    resource = relationship("Resource", back_populates="links")
+
+
+class ResourceAttachment(Base):
+    __tablename__ = "resource_attachments"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    resource_id: Mapped[UUID] = mapped_column(ForeignKey("resources.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str] = mapped_column(Text)
+    filename: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str | None] = mapped_column(String(100))
+    size_bytes: Mapped[int | None] = mapped_column(Integer)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    resource = relationship("Resource", back_populates="attachments")
 
 
 class Article(Base):

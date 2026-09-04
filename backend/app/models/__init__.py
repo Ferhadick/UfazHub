@@ -1,4 +1,14 @@
-from app.models.content import Article, Collection, CollectionItem, Resource, article_tags, collection_tags, resource_tags
+from app.models.content import (
+    Article,
+    Collection,
+    CollectionItem,
+    Resource,
+    ResourceAttachment,
+    ResourceLink,
+    article_tags,
+    collection_tags,
+    resource_tags,
+)
 from app.models.enums import (
     ActionEventType,
     ActorType,
@@ -32,6 +42,8 @@ __all__ = [
     "QuestionStatus",
     "ReputationEvent",
     "Resource",
+    "ResourceAttachment",
+    "ResourceLink",
     "ResourceType",
     "Tag",
     "User",

@@ -241,3 +241,37 @@ async def test_author_can_delete_own_content(client: AsyncClient) -> None:
     del_col = await client.delete(f"/api/v1/collections/{col_id}", headers={"Authorization": f"Bearer {token}"})
     assert del_col.status_code == 204
 
+
+async def test_upload_then_publish_resource_link(client: AsyncClient) -> None:
+    register = await client.post(
+        "/api/v1/auth/register",
+        json={"email": "samir@ufaz.az", "username": "samir", "password": "localpass123", "name": "Samir Hasanov"},
+    )
+    token = register.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    upload = await client.post(
+        "/api/v1/resources/upload",
+        headers=headers,
+        files={"file": ("week-4.md", b"## Week 4\n\nUseful revision notes.", "text/markdown")},
+    )
+    assert upload.status_code == 201
+    uploaded_url = upload.json()["url"]
+    assert uploaded_url.startswith("http://test/uploads/resources/")
+
+    created = await client.post(
+        "/api/v1/resources",
+        headers=headers,
+        json={
+            "title": "Week 4 notes",
+            "description": "## Week 4\n\nUseful revision notes shared as Markdown.",
+            "url": uploaded_url,
+            "type": "docs",
+            "category": "General",
+            "difficulty": "beginner",
+            "tags": ["notes"],
+        },
+    )
+    assert created.status_code == 201
+    assert created.json()["url"] == uploaded_url
+    assert created.json()["description"].startswith("## Week 4")

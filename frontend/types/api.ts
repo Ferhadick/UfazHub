@@ -90,6 +90,22 @@ export type TagRead = {
   slug: string;
 };
 
+export type ResourceLinkRead = {
+  id: string;
+  url: string;
+  label: string | null;
+  position: number;
+};
+
+export type ResourceAttachmentRead = {
+  id: string;
+  url: string;
+  filename: string;
+  content_type: string | null;
+  size_bytes: number | null;
+  position: number;
+};
+
 export type ResourceRead = {
   id: string;
   title: string;
@@ -111,6 +127,8 @@ export type ResourceRead = {
   updated_at: string;
   author: UserPublic;
   tags: TagRead[];
+  links: ResourceLinkRead[];
+  attachments: ResourceAttachmentRead[];
 };
 
 export type ArticleRead = {

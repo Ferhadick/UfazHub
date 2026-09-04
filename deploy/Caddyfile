@@ -13,6 +13,10 @@ www.{$APP_DOMAIN:localhost} {
 		reverse_proxy backend:8000
 	}
 
+	handle /uploads/* {
+		reverse_proxy backend:8000
+	}
+
 	handle /docs* {
 		reverse_proxy backend:8000
 	}

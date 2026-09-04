@@ -18,7 +18,7 @@ class Question(Base):
     topic_tag: Mapped[str] = mapped_column(String(80), index=True, default="general")
     linked_resource_id: Mapped[UUID | None] = mapped_column(ForeignKey("resources.id", ondelete="SET NULL"), nullable=True, index=True)
     status: Mapped[QuestionStatus] = mapped_column(
-        Enum(QuestionStatus, name="question_status"),
+        Enum(QuestionStatus, name="question_status", native_enum=False, length=30),
         default=QuestionStatus.open,
         server_default="open",
         index=True,

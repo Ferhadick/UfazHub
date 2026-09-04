@@ -19,8 +19,9 @@ async def index(
     session: DbSession,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
+    q: str | None = None,
 ) -> PaginatedResponse[ArticleRead]:
-    items, total = await list_articles(session, limit, offset)
+    items, total = await list_articles(session, limit, offset, q=q)
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 

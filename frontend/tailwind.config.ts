@@ -6,9 +6,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        paper: "var(--color-background)",
+        paper: {
+          DEFAULT: "var(--color-background)",
+          50: "var(--color-paper-50)",
+          100: "var(--color-paper-100)"
+        },
         ink: "var(--color-foreground)",
         muted: "var(--color-muted)",
+        surface: "var(--color-surface)",
         line: "var(--color-border)",
         accent: "var(--color-accent)",
         clay: "var(--color-clay)",

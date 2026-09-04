@@ -1,15 +1,17 @@
 import { listPeople } from "@/lib/api";
 import { PeopleDirectory } from "@/components/features/people-directory";
 
+export const metadata = { title: "People — UFAZ Hub" };
+
 export default async function PeoplePage() {
-  const people = await listPeople(50).catch(() => ({ items: [], total: 0, limit: 50, offset: 0 }));
+  const people = await listPeople(100, undefined, { sort: "featured" }).catch(() => ({ items: [], total: 0, limit: 100, offset: 0 }));
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-16">
-      <div className="mb-10 border-t border-line pt-5">
-        <div className="text-xs uppercase tracking-[0.18em] text-muted">03 / People</div>
-        <h1 className="mt-2 font-accent text-4xl leading-none md:text-6xl">Good neighbours</h1>
-        <p className="mt-3 font-sans text-sm text-muted">UFAZ students, contributors, and readers shaping the index.</p>
+    <main className="mx-auto max-w-6xl px-4 py-10 md:px-8 md:py-14">
+      <div className="mb-8 max-w-3xl">
+        <p className="mb-2 text-sm font-semibold text-accent">Community directory</p>
+        <h1 className="font-serif text-4xl font-semibold tracking-tight md:text-5xl">Find people worth following.</h1>
+        <p className="mt-3 text-base leading-7 text-muted">Discover active contributors, researchers, students and alumni by what they do, where they study and what they share.</p>
       </div>
       <PeopleDirectory initialPeople={people.items} />
     </main>

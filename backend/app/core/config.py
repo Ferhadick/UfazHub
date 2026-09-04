@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     ip_hash_salt: str = Field(default="local-dev-salt", min_length=8)
     frontend_url: AnyHttpUrl | str = "http://localhost:3000"
     admin_emails: str = ""
+    upload_dir: str = "uploads"
+    max_upload_mb: int = 25
 
     @property
     def cors_origins(self) -> list[str]:

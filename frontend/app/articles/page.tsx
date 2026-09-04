@@ -5,31 +5,30 @@ export default async function ArticlesPage() {
   const articles = await listArticles(30).catch(() => ({ items: [], total: 0, limit: 30, offset: 0 }));
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-16">
-      <div className="mb-10 flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-end sm:justify-between">
+    <main className="mx-auto max-w-5xl px-4 py-10 md:px-8 md:py-14">
+      <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted">Articles</div>
-          <h1 className="mt-2 font-accent text-4xl leading-none md:text-6xl">Field notes</h1>
+          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Notes</h1>
+          <p className="mt-2 text-sm text-muted">Longer writeups and Markdown notes from students.</p>
         </div>
-        <Link href="/articles/new" className="w-fit border border-line px-3 py-2 text-sm">Write</Link>
+        <Link href="/submit" className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">Write</Link>
       </div>
-      <div className="divide-y divide-line border-y border-line">
-        {articles.items.map((article, index) => (
-          <Link key={article.id} href={`/articles/${article.slug}`} className="grid gap-3 py-6 md:grid-cols-[4rem_1fr_8rem] md:gap-4">
-            <div className="flex items-baseline justify-between gap-4 md:block">
-              <div className="font-accent text-2xl text-muted">{String(index + 1).padStart(2, "0")}</div>
-              <div className="font-accent text-2xl md:hidden">{article.upvotes - article.downvotes}</div>
+      <div className="divide-y divide-line rounded-lg border border-line bg-paper">
+        {articles.items.length === 0 ? (
+          <div className="p-10 text-center text-sm text-muted">No notes yet.</div>
+        ) : articles.items.map((article) => (
+          <Link key={article.id} href={`/articles/${article.slug}`} className="block p-5 transition-colors hover:bg-paper-50 sm:p-6">
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span>{article.reading_time} min read</span>
+              <span>·</span>
+              <span>{article.upvotes - article.downvotes} points</span>
             </div>
-            <div className="min-w-0">
-              <div className="text-xs uppercase tracking-[0.16em] text-muted">Article / {article.reading_time} min read</div>
-              <h2 className="mt-2 font-accent text-2xl break-words md:text-3xl">{article.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">{article.excerpt}</p>
-            </div>
-            <div className="hidden text-right font-accent text-2xl md:block">{article.upvotes - article.downvotes}</div>
+            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{article.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">{article.excerpt}</p>
+            <div className="mt-4 text-xs text-muted">by <span className="font-medium text-ink">{article.author.name}</span></div>
           </Link>
         ))}
       </div>
     </main>
   );
 }
-

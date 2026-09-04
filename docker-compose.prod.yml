@@ -31,6 +31,8 @@ services:
     command: sh -c "uv run alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     expose:
       - "8000"
+    volumes:
+      - backend_uploads:/app/uploads
 
   frontend:
     build:
@@ -65,5 +67,6 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:
   caddy_data:
   caddy_config:

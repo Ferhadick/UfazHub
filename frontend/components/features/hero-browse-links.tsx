@@ -1,8 +1,6 @@
 "use client";
 
-type BrowseEventDetail = {
-  tag: string;
-};
+type BrowseEventDetail = { tag: string };
 
 export function HeroBrowseLinks({ tags }: { tags: string[] }) {
   function chooseTag(tag: string) {
@@ -11,14 +9,14 @@ export function HeroBrowseLinks({ tags }: { tags: string[] }) {
   }
 
   return (
-    <div className="mt-5 flex flex-wrap gap-4 text-xs">
-      <span className="text-ink">Browse by:</span>
+    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+      <span className="text-muted">Browse:</span>
       {tags.map((tag) => (
         <button
           key={tag}
           type="button"
           onClick={() => chooseTag(tag)}
-          className="border-b border-accent text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-clay focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0"
+          className="font-medium text-accent underline-offset-4 hover:underline"
         >
           {tag}
         </button>
